@@ -1,8 +1,8 @@
-# Nyre
+# Kipu
 
 **Las finanzas de tu familia y de tu SaaS, en un solo lugar y fáciles de entender.**
 
-Nyre te dice en una frase cómo va tu mes (“¡Vas muy bien! De cada $100 que entraron te quedaron $49”), en qué se fue el dinero y, para tu negocio, cuánto te pagan cada mes tus clientes y cuántos se van.
+Kipu te dice en una frase cómo va tu mes (“¡Vas muy bien! De cada $100 que entraron te quedaron $49”), en qué se fue el dinero y, para tu negocio, cuánto te pagan cada mes tus clientes y cuántos se van.
 
 ![Resumen de la familia](docs/capturas/resumen-familia.png)
 
@@ -51,9 +51,9 @@ Cada función sale de una recomendación oficial o de un estudio, explicada sin 
 
 | Función | En qué se basa |
 |---|---|
-| 🐷 **Metas de ahorro** | Ponerle nombre al ahorro (“para la escuela”, “para emergencias”) aumentó lo guardado alrededor de 30% en estudios de campo, y compartir las metas con otros lo aumentó 35%. CONDUSEF recomienda un fondo de emergencia de 3 a 6 meses de gastos básicos; Nyre calcula cuánto es para tu familia. |
-| 🔔 **Pagos fijos** | Los recordatorios de pago redujeron en 1 de cada 5 los recargos por pagar tarde. La gente subestima lo que paga en suscripciones (unos 133 dólares al mes en EE. UU.), así que Nyre detecta cargos que se repiten y suma cuánto cuestan al año. |
-| 🤝 **Deudas** | Un estudio de Kellogg con 6,000 personas encontró que pagar primero las deudas chicas (bola de nieve) hace que más gente termine de pagar. CONDUSEF advierte que el pago mínimo debe ser solo para emergencias; Nyre te dice cuánto tardarías y cuánto interés pagarías con él. |
+| 🐷 **Metas de ahorro** | Ponerle nombre al ahorro (“para la escuela”, “para emergencias”) aumentó lo guardado alrededor de 30% en estudios de campo, y compartir las metas con otros lo aumentó 35%. CONDUSEF recomienda un fondo de emergencia de 3 a 6 meses de gastos básicos; Kipu calcula cuánto es para tu familia. |
+| 🔔 **Pagos fijos** | Los recordatorios de pago redujeron en 1 de cada 5 los recargos por pagar tarde. La gente subestima lo que paga en suscripciones (unos 133 dólares al mes en EE. UU.), así que Kipu detecta cargos que se repiten y suma cuánto cuestan al año. |
+| 🤝 **Deudas** | Un estudio de Kellogg con 6,000 personas encontró que pagar primero las deudas chicas (bola de nieve) hace que más gente termine de pagar. CONDUSEF advierte que el pago mínimo debe ser solo para emergencias; Kipu te dice cuánto tardarías y cuánto interés pagarías con él. |
 | ☕ **Gastos hormiga** | CONDUSEF recomienda identificar estos gastos chicos y recurrentes para generar ahorro. |
 | ⚖️ **50/30/20** | La guía de Elizabeth Warren: 50% necesidades, 30% gustos, 20% ahorro y deudas. Distinguir necesidades de gustos es la discusión de dinero más común en pareja (58%). |
 | 🗓️ **Junta familiar** | Las parejas que platican de gastos cotidianos reportan mejores relaciones, y 55% no aparta tiempo para hablar de dinero. |
@@ -116,13 +116,13 @@ npm run dev
 
 Abre http://localhost:3200 y crea tu cuenta. Se crean automáticamente los espacios **Familia** y **Mi SaaS**, con una guía de **primeros pasos**.
 
-Los datos se guardan en SQLite en `data/nyre.db` (cambia la ruta con `DATABASE_PATH`). Las migraciones se aplican solas al arrancar. **Respalda ese archivo**: es toda tu información.
+Los datos se guardan en SQLite en `data/kipu.db` (cambia la ruta con `DATABASE_PATH`). Las migraciones se aplican solas al arrancar. **Respalda ese archivo**: es toda tu información.
 
 ## Importar CSV del banco
 
 1. Descarga el estado de cuenta en CSV desde tu banco.
 2. En el espacio, ve a **Importar CSV** y elige el archivo.
-3. Revisa qué columna es la fecha, la descripción y el monto (o cargos y abonos). Nyre intenta adivinarlo.
+3. Revisa qué columna es la fecha, la descripción y el monto (o cargos y abonos). Kipu intenta adivinarlo.
 4. Importa. Puedes volver a subir el mismo archivo: los movimientos repetidos se omiten.
 
 En **Categorías** puedes crear reglas como “si la descripción contiene *walmart* → Supermercado”, que se aplican al importar.

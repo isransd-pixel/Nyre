@@ -4,5 +4,5 @@ export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./drizzle",
   dialect: "sqlite",
-  dbCredentials: { url: process.env.DATABASE_PATH ?? "./data/nyre.db" },
+  dbCredentials: { url: process.env.DATABASE_PATH ?? "./data/kipu.db" },
 });

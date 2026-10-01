@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 backdrop-blur">
             <PiggyBank className="h-5 w-5" aria-hidden />
           </span>
-          Nyre
+          Kipu
         </div>
 
         <div className="relative max-w-md">
@@ -62,7 +62,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           <span className="bg-brand inline-flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-glow">
             <PiggyBank className="h-6 w-6" aria-hidden />
           </span>
-          <div className="mt-3 text-2xl font-semibold tracking-tight">Nyre</div>
+          <div className="mt-3 text-2xl font-semibold tracking-tight">Kipu</div>
           <p className="mt-1 text-sm text-muted">Las finanzas de tu familia y de tu SaaS</p>
         </div>
         <div className="w-full max-w-sm">{children}</div>

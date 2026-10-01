@@ -22,7 +22,7 @@ function Logo() {
       <span className="bg-brand inline-flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-glow">
         <PiggyBank className="h-5 w-5" aria-hidden />
       </span>
-      Nyre
+      Kipu
     </Link>
   );
 }

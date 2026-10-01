@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Nyre
+# Kipu
 
 - UI and user-facing text are in Spanish (es-MX); keep it that way.
 - Money is stored as positive integer cents in `amount_cents`; the sign comes from `type` (`income` | `expense`).

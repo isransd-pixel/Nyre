@@ -3,7 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nyre · Finanzas",
+  title: "Kipu · Finanzas",
   description: "Finanzas de la familia y del SaaS en un solo lugar.",
 };
 

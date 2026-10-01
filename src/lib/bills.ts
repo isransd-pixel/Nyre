@@ -177,7 +177,7 @@ export function billsToIcs(
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Nyre//Pagos fijos//ES",
+    "PRODID:-//Kipu//Pagos fijos//ES",
     "CALSCALE:GREGORIAN",
     "X-WR-CALNAME:Pagos fijos",
   ];

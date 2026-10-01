@@ -18,7 +18,7 @@ cp .env.example .env.local   # y pon un SESSION_SECRET (openssl rand -base64 48)
 npm run dev
 ```
 
-Abre http://localhost:3000 y crea tu cuenta. Se crean automáticamente los espacios **Familia** y **Mi SaaS**.
+Abre http://localhost:3200 y crea tu cuenta. Se crean automáticamente los espacios **Familia** y **Mi SaaS**.
 
 Los datos se guardan en SQLite en `data/nyre.db` (cambia la ruta con `DATABASE_PATH`). Las migraciones se aplican solas al arrancar. **Respalda ese archivo**: es toda tu información.
 

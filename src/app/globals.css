@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --line: #e3e6eb;
+  --text: #15181d;
+  --muted: #5f6774;
+  --accent: #3b5bdb;
+  --accent-text: #ffffff;
+  --income: #1b7f4b;
+  --expense: #c0392b;
+  /* Serie de gráficas: azul/naranja validados para daltonismo (rojo/verde no pasa). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --grid: #eceef1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --surface: #171a20;
+    --line: #2a2f38;
+    --text: #e8eaee;
+    --muted: #9aa3b0;
+    --accent: #7b93f5;
+    --accent-text: #0f1115;
+    --income: #5fd394;
+    --expense: #ff8a7a;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --grid: #232831;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}

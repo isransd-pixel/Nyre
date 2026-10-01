@@ -4,7 +4,7 @@ import { logout } from "@/app/(auth)/actions";
 
 export function TopBar({ userName }: { userName: string }) {
   return (
-    <header className="border-b border-line bg-surface">
+    <header className="border-b border-line bg-surface print:hidden">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-accent-text">

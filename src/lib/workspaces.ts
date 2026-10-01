@@ -14,7 +14,12 @@ export function createWorkspace(
     tx.insert(schema.categories)
       .values([
         ...defaults.income.map((name) => ({ workspaceId: ws.id, name, type: "income" as const })),
-        ...defaults.expense.map((name) => ({ workspaceId: ws.id, name, type: "expense" as const })),
+        ...defaults.expense.map(([name, bucket]) => ({
+          workspaceId: ws.id,
+          name,
+          type: "expense" as const,
+          bucket,
+        })),
       ])
       .run();
     return ws.id;

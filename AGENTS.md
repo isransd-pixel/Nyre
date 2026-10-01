@@ -15,3 +15,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Every server action must call `requireWorkspace(id)` (or `requireOwner`) before touching data and scope queries by `workspaceId`.
 - After editing `src/db/schema.ts`, run `npm run db:generate` and commit the new file in `drizzle/`.
 - Checks: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`.
+- Financial rules (budgets, goals, bills, debts, ant expenses, 50/30/20, tips) are pure functions in `src/lib/*.ts` with tests next to them; pages only fetch data and render. `src/lib/overview.ts` builds the monthly snapshot shared by the dashboard and the family meeting page.
+- Advice shown to families must stay in plain Spanish and cite its basis (CONDUSEF, studies) in the README "Fuentes" section.

@@ -64,6 +64,8 @@ export const categories = sqliteTable(
       .references(() => workspaces.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     type: text("type", { enum: ["income", "expense"] }).notNull(),
+    /** Para la regla 50/30/20: necesidad, gusto o ahorro/deudas. Solo gastos. */
+    bucket: text("bucket", { enum: ["need", "want", "save"] }),
   },
   (t) => [uniqueIndex("categories_ws_name_type").on(t.workspaceId, t.name, t.type)],
 );
@@ -126,6 +128,73 @@ export const budgets = sqliteTable(
   (t) => [uniqueIndex("budgets_category").on(t.categoryId)],
 );
 
+/** Meta de ahorro con nombre: "Fondo de emergencia", "Regreso a clases"… */
+export const goals = sqliteTable("goals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  /** Plantilla de la que salió; define el ícono. */
+  kind: text("kind", {
+    enum: ["emergency", "school", "holidays", "january", "vacation", "custom"],
+  }).notNull(),
+  targetCents: integer("target_cents").notNull(),
+  /** YYYY-MM-DD, opcional. */
+  targetDate: text("target_date"),
+  createdAt: createdAt(),
+});
+
+/** Dinero apartado (positivo) o retirado (negativo) de una meta. */
+export const goalEntries = sqliteTable(
+  "goal_entries",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    goalId: integer("goal_id")
+      .notNull()
+      .references(() => goals.id, { onDelete: "cascade" }),
+    date: text("date").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("goal_entries_goal").on(t.goalId)],
+);
+
+/** Pago que se repite: luz, internet, colegiatura, Netflix, tarjeta… */
+export const bills = sqliteTable("bills", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  kind: text("kind", { enum: ["service", "subscription", "card", "loan", "school", "other"] }).notNull(),
+  /** Monto estimado; al marcarlo pagado se puede ajustar. */
+  amountCents: integer("amount_cents").notNull(),
+  frequency: text("frequency", {
+    enum: ["weekly", "biweekly", "monthly", "bimonthly", "yearly"],
+  }).notNull(),
+  /** Próxima fecha límite, YYYY-MM-DD. */
+  nextDue: text("next_due").notNull(),
+  categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+});
+
+/** Tarjeta o préstamo que se está pagando. */
+export const debts = sqliteTable("debts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  kind: text("kind", { enum: ["card", "loan", "other"] }).notNull(),
+  balanceCents: integer("balance_cents").notNull(),
+  /** Tasa anual en centésimas de punto: 4550 = 45.50%. */
+  annualRateBp: integer("annual_rate_bp").notNull(),
+  minPaymentCents: integer("min_payment_cents").notNull(),
+  createdAt: createdAt(),
+});
+
 export const stripeConnections = sqliteTable("stripe_connections", {
   workspaceId: integer("workspace_id")
     .primaryKey()
@@ -156,6 +225,9 @@ export const stripeSubscriptions = sqliteTable(
 );
 
 export type Workspace = typeof workspaces.$inferSelect;
+export type Goal = typeof goals.$inferSelect;
+export type Bill = typeof bills.$inferSelect;
+export type Debt = typeof debts.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type StripeSubscriptionRow = typeof stripeSubscriptions.$inferSelect;

@@ -9,6 +9,7 @@ import { ActionForm } from "@/components/action-form";
 import { SubmitButton } from "@/components/submit-button";
 import { Card, Input, Label, Select } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
+import { BucketSelect } from "./bucket-select";
 import { getCategories, getRules } from "@/lib/queries";
 
 export default async function CategoriesPage({ params }: PageProps<"/e/[id]/categorias">) {
@@ -16,6 +17,7 @@ export default async function CategoriesPage({ params }: PageProps<"/e/[id]/cate
   const { workspace } = await requireWorkspace(Number(id));
   const categories = getCategories(workspace.id);
   const rules = getRules(workspace.id);
+  const isFamily = workspace.kind === "family";
   const groups = [
     { type: "expense" as const, title: "Gastos" },
     { type: "income" as const, title: "Ingresos" },
@@ -30,13 +32,42 @@ export default async function CategoriesPage({ params }: PageProps<"/e/[id]/cate
             Son los “cajones” donde va cada peso. Así el resumen te dice en qué se fue el dinero.
           </p>
         </div>
-        {groups.map((g) => (
-          <div key={g.type}>
-            <h3 className="mb-2 text-sm text-muted">{g.title}</h3>
-            <ul className="flex flex-wrap gap-2">
-              {categories
-                .filter((c) => c.type === g.type)
-                .map((c) => (
+        {groups.map((g) => {
+          const list = categories.filter((c) => c.type === g.type);
+          // En familia, los gastos se muestran en lista para poder clasificarlos (50/30/20).
+          if (isFamily && g.type === "expense") {
+            return (
+              <div key={g.type}>
+                <h3 className="mb-1 text-sm text-muted">{g.title}</h3>
+                <p className="mb-2 text-xs text-muted">
+                  Elige si cada una es necesidad, gusto o ahorro: así el resumen arma la regla 50/30/20.
+                </p>
+                <ul className="flex flex-col divide-y divide-line">
+                  {list.map((c) => (
+                    <li key={c.id} className="flex items-center gap-2 py-1.5 text-sm">
+                      <CategoryIcon name={c.name} type={c.type} size="sm" />
+                      <span className="flex-1">{c.name}</span>
+                      <BucketSelect workspaceId={workspace.id} categoryId={c.id} value={c.bucket} name={c.name} />
+                      <form action={deleteCategoryAction.bind(null, workspace.id, c.id)}>
+                        <SubmitButton
+                          variant="danger"
+                          pendingText="…"
+                          confirm={`¿Eliminar "${c.name}"? Sus movimientos quedarán sin categoría.`}
+                        >
+                          <span aria-label={`Eliminar ${c.name}`}>✕</span>
+                        </SubmitButton>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          }
+          return (
+            <div key={g.type}>
+              <h3 className="mb-2 text-sm text-muted">{g.title}</h3>
+              <ul className="flex flex-wrap gap-2">
+                {list.map((c) => (
                   <li key={c.id} className="flex items-center gap-2 rounded-full border border-line py-0.5 pl-1 pr-1 text-sm">
                     <CategoryIcon name={c.name} type={c.type} size="sm" />
                     {c.name}
@@ -51,18 +82,27 @@ export default async function CategoriesPage({ params }: PageProps<"/e/[id]/cate
                     </form>
                   </li>
                 ))}
-            </ul>
-          </div>
-        ))}
+              </ul>
+            </div>
+          );
+        })}
         <ActionForm action={addCategoryAction.bind(null, workspace.id)} className="flex flex-wrap items-end gap-2">
           <Label className="flex-1">
             Nueva categoría
             <Input name="name" placeholder="Ej. Mascotas" required />
           </Label>
-          <Select name="type" defaultValue="expense">
+          <Select name="type" defaultValue="expense" aria-label="Tipo">
             <option value="expense">Gasto</option>
             <option value="income">Ingreso</option>
           </Select>
+          {isFamily && (
+            <Select name="bucket" defaultValue="" aria-label="Clasificación">
+              <option value="">Sin clasificar</option>
+              <option value="need">Necesidad</option>
+              <option value="want">Gusto</option>
+              <option value="save">Ahorro y deudas</option>
+            </Select>
+          )}
           <SubmitButton>Agregar</SubmitButton>
         </ActionForm>
       </Card>

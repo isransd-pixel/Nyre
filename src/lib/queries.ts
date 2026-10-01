@@ -154,7 +154,19 @@ export function getSetupStatus(workspaceId: number) {
     .from(schema.budgets)
     .where(eq(schema.budgets.workspaceId, workspaceId))
     .get()!.n;
+  const goals = db
+    .select({ n: sql<number>`count(*)` })
+    .from(schema.goals)
+    .where(eq(schema.goals.workspaceId, workspaceId))
+    .get()!.n;
+  const bills = db
+    .select({ n: sql<number>`count(*)` })
+    .from(schema.bills)
+    .where(eq(schema.bills.workspaceId, workspaceId))
+    .get()!.n;
   return {
+    goals: goals > 0,
+    bills: bills > 0,
     budgets: budgets > 0,
     manual: count("manual") > 0,
     csv: count("csv") > 0,
@@ -172,4 +184,70 @@ export function getBudgets(workspaceId: number): Map<number, number> {
     .where(eq(schema.budgets.workspaceId, workspaceId))
     .all();
   return new Map(rows.map((r) => [r.categoryId, r.amountCents]));
+}
+
+/** Metas con lo ahorrado y lo apartado en promedio al mes en los últimos 3 meses. */
+export function getGoals(workspaceId: number, today: string) {
+  const goals = db
+    .select()
+    .from(schema.goals)
+    .where(eq(schema.goals.workspaceId, workspaceId))
+    .orderBy(asc(schema.goals.createdAt), asc(schema.goals.id))
+    .all();
+  if (goals.length === 0) return [];
+  const entries = db
+    .select({
+      goalId: schema.goalEntries.goalId,
+      date: schema.goalEntries.date,
+      amountCents: schema.goalEntries.amountCents,
+    })
+    .from(schema.goalEntries)
+    .where(inArray(schema.goalEntries.goalId, goals.map((g) => g.id)))
+    .all();
+  const since = new Date(Date.parse(`${today}T00:00:00Z`) - 90 * 86400000).toISOString().slice(0, 10);
+  return goals.map((g) => {
+    const mine = entries.filter((e) => e.goalId === g.id);
+    const saved = mine.reduce((a, e) => a + e.amountCents, 0);
+    const recent = mine.filter((e) => e.date > since).reduce((a, e) => a + e.amountCents, 0);
+    return { ...g, saved, recentMonthly: Math.max(0, Math.round(recent / 3)) };
+  });
+}
+
+export function getBills(workspaceId: number) {
+  return db
+    .select()
+    .from(schema.bills)
+    .where(eq(schema.bills.workspaceId, workspaceId))
+    .orderBy(asc(schema.bills.nextDue), asc(schema.bills.name))
+    .all();
+}
+
+export function getDebts(workspaceId: number) {
+  return db
+    .select()
+    .from(schema.debts)
+    .where(eq(schema.debts.workspaceId, workspaceId))
+    .orderBy(asc(schema.debts.balanceCents))
+    .all();
+}
+
+/**
+ * Gasto básico mensual: promedio de los últimos 3 meses completos en categorías
+ * de necesidad. Si no hay categorías clasificadas, usa todo el gasto.
+ */
+export function monthlyBasicSpending(workspaceId: number, today: string): number {
+  const month = today.slice(0, 7);
+  const [y, m] = month.split("-").map(Number);
+  const first = new Date(Date.UTC(y, m - 4, 1)).toISOString().slice(0, 7);
+  const last = new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
+  const needs = new Set(
+    getCategories(workspaceId)
+      .filter((c) => c.type === "expense" && c.bucket === "need")
+      .map((c) => c.id),
+  );
+  const txs = getTxsBetween([workspaceId], first, last).filter((t) => t.type === "expense");
+  const relevant = needs.size > 0 ? txs.filter((t) => t.categoryId !== null && needs.has(t.categoryId)) : txs;
+  const months = new Set(txs.map((t) => t.date.slice(0, 7))).size;
+  if (months === 0) return 0;
+  return Math.round(relevant.reduce((a, t) => a + t.amountCents, 0) / months);
 }

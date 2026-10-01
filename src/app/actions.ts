@@ -11,6 +11,9 @@ import { encrypt } from "@/lib/crypto";
 import { matchCategory, normalizeRows, type ColumnMapping } from "@/lib/csv";
 import { CURRENCIES, parseAmount } from "@/lib/money";
 import { checkStripeKey, syncStripe } from "@/lib/stripe-sync";
+import { advanceDue } from "@/lib/bills";
+import { DEBT_CATEGORY } from "@/lib/categories";
+import { today } from "@/lib/dates";
 import { acceptInvite, createWorkspace } from "@/lib/workspaces";
 
 export type ActionState = { error?: string; message?: string } | undefined;
@@ -201,12 +204,14 @@ export async function addCategoryAction(
     .object({
       name: z.string().trim().min(1, "Escribe un nombre.").max(40),
       type: z.enum(["income", "expense"]),
+      bucket: z.enum(["", "need", "want", "save"]).optional(),
     })
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { bucket, ...rest } = parsed.data;
   const res = db
     .insert(schema.categories)
-    .values({ ...parsed.data, workspaceId })
+    .values({ ...rest, workspaceId, bucket: rest.type === "expense" && bucket ? bucket : null })
     .onConflictDoNothing()
     .run();
   if (res.changes === 0) return { error: "Esa categoría ya existe." };
@@ -309,6 +314,324 @@ export async function setBudgetAction(
     .run();
   refresh(workspaceId);
   return { message: "Guardado." };
+}
+
+/* ───────────── Metas de ahorro ───────────── */
+
+const positiveAmount = (raw: unknown) => {
+  const cents = parseAmount(String(raw ?? ""));
+  return cents !== null && cents > 0 ? cents : null;
+};
+
+function goalInWorkspace(workspaceId: number, goalId: number) {
+  return db
+    .select()
+    .from(schema.goals)
+    .where(and(eq(schema.goals.id, goalId), eq(schema.goals.workspaceId, workspaceId)))
+    .get();
+}
+
+export async function createGoalAction(
+  workspaceId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireWorkspace(workspaceId);
+  const parsed = z
+    .object({
+      kind: z.enum(["emergency", "school", "holidays", "january", "vacation", "custom"]),
+      name: z.string().trim().min(1, "Ponle nombre a la meta.").max(60),
+      target: z.string(),
+      targetDate: z.union([z.literal(""), z.iso.date("Fecha inválida.")]).optional(),
+    })
+    .safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const target = positiveAmount(parsed.data.target);
+  if (!target) return { error: "¿Cuánto quieren juntar? Escribe un monto mayor a cero." };
+
+  db.insert(schema.goals)
+    .values({
+      workspaceId,
+      kind: parsed.data.kind,
+      name: parsed.data.name,
+      targetCents: target,
+      targetDate: parsed.data.targetDate || null,
+    })
+    .run();
+  refresh(workspaceId);
+  return { message: "Meta creada." };
+}
+
+export async function addGoalEntryAction(
+  workspaceId: number,
+  goalId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { user } = await requireWorkspace(workspaceId);
+  const goal = goalInWorkspace(workspaceId, goalId);
+  if (!goal) return { error: "Meta no encontrada." };
+  const amount = positiveAmount(formData.get("amount"));
+  if (!amount) return { error: "Escribe un monto mayor a cero." };
+  const withdraw = formData.get("direction") === "out";
+
+  if (withdraw) {
+    const saved = db
+      .select({ n: sql<number>`coalesce(sum(${schema.goalEntries.amountCents}), 0)` })
+      .from(schema.goalEntries)
+      .where(eq(schema.goalEntries.goalId, goal.id))
+      .get()!.n;
+    if (amount > saved) return { error: "No puedes sacar más de lo que hay apartado." };
+  }
+  db.insert(schema.goalEntries)
+    .values({
+      goalId: goal.id,
+      date: today(),
+      amountCents: withdraw ? -amount : amount,
+      createdBy: user.id,
+    })
+    .run();
+  refresh(workspaceId);
+  return { message: withdraw ? "Retiro anotado." : "¡Abono anotado!" };
+}
+
+export async function deleteGoalAction(workspaceId: number, goalId: number) {
+  await requireWorkspace(workspaceId);
+  db.delete(schema.goals)
+    .where(and(eq(schema.goals.id, goalId), eq(schema.goals.workspaceId, workspaceId)))
+    .run();
+  refresh(workspaceId);
+}
+
+/* ───────────── Pagos fijos ───────────── */
+
+const billSchema = z.object({
+  name: z.string().trim().min(1, "¿Qué pago es? Escribe un nombre.").max(60),
+  kind: z.enum(["service", "subscription", "card", "loan", "school", "other"]),
+  amount: z.string(),
+  frequency: z.enum(["weekly", "biweekly", "monthly", "bimonthly", "yearly"]),
+  nextDue: z.iso.date("Elige la fecha en que vence."),
+  categoryId: optionalId,
+});
+
+export async function createBillAction(
+  workspaceId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireWorkspace(workspaceId);
+  const parsed = billSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const amount = positiveAmount(parsed.data.amount);
+  if (!amount) return { error: "Escribe cuánto pagas (aproximado está bien)." };
+  const category = categoryInWorkspace(workspaceId, parsed.data.categoryId);
+
+  db.insert(schema.bills)
+    .values({
+      ...parsed.data,
+      workspaceId,
+      amountCents: amount,
+      categoryId: category?.type === "expense" ? category.id : null,
+    })
+    .run();
+  refresh(workspaceId);
+  return { message: `${parsed.data.name} agregado a tus pagos fijos.` };
+}
+
+export async function payBillAction(
+  workspaceId: number,
+  billId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { user } = await requireWorkspace(workspaceId);
+  const bill = db
+    .select()
+    .from(schema.bills)
+    .where(and(eq(schema.bills.id, billId), eq(schema.bills.workspaceId, workspaceId)))
+    .get();
+  if (!bill) return { error: "Pago no encontrado." };
+  const amount = positiveAmount(formData.get("amount"));
+  if (!amount) return { error: "Escribe cuánto pagaste." };
+
+  db.transaction((tx) => {
+    if (formData.get("record")) {
+      tx.insert(schema.transactions)
+        .values({
+          workspaceId,
+          date: today(),
+          description: bill.name,
+          amountCents: amount,
+          type: "expense",
+          categoryId: bill.categoryId,
+          source: "manual",
+          createdBy: user.id,
+        })
+        .run();
+    }
+    tx.update(schema.bills)
+      .set({ nextDue: advanceDue(bill.nextDue, bill.frequency), amountCents: amount })
+      .where(eq(schema.bills.id, bill.id))
+      .run();
+  });
+  refresh(workspaceId);
+  return { message: `${bill.name}: pagado.` };
+}
+
+export async function deleteBillAction(workspaceId: number, billId: number) {
+  await requireWorkspace(workspaceId);
+  db.delete(schema.bills)
+    .where(and(eq(schema.bills.id, billId), eq(schema.bills.workspaceId, workspaceId)))
+    .run();
+  refresh(workspaceId);
+}
+
+/* ───────────── Deudas ───────────── */
+
+function debtInWorkspace(workspaceId: number, debtId: number) {
+  return db
+    .select()
+    .from(schema.debts)
+    .where(and(eq(schema.debts.id, debtId), eq(schema.debts.workspaceId, workspaceId)))
+    .get();
+}
+
+/** Busca (o crea) la categoría de gasto con ese nombre. */
+function ensureExpenseCategory(workspaceId: number, name: string, bucket: "need" | "want" | "save") {
+  db.insert(schema.categories)
+    .values({ workspaceId, name, type: "expense", bucket })
+    .onConflictDoNothing()
+    .run();
+  return db
+    .select()
+    .from(schema.categories)
+    .where(
+      and(
+        eq(schema.categories.workspaceId, workspaceId),
+        eq(schema.categories.name, name),
+        eq(schema.categories.type, "expense"),
+      ),
+    )
+    .get()!;
+}
+
+export async function createDebtAction(
+  workspaceId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireWorkspace(workspaceId);
+  const parsed = z
+    .object({
+      name: z.string().trim().min(1, "Ponle nombre: por ejemplo “Tarjeta Banamex”.").max(60),
+      kind: z.enum(["card", "loan", "other"]),
+      balance: z.string(),
+      rate: z.string(),
+      minPayment: z.string(),
+    })
+    .safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const balance = positiveAmount(parsed.data.balance);
+  if (!balance) return { error: "¿Cuánto debes hoy? Escribe el saldo." };
+  const minPayment = positiveAmount(parsed.data.minPayment);
+  if (!minPayment) return { error: "Escribe el pago mínimo mensual (viene en tu estado de cuenta)." };
+  const rate = Number(parsed.data.rate.replace(",", ".").replace("%", "").trim());
+  if (!Number.isFinite(rate) || rate < 0 || rate > 500) {
+    return { error: "Escribe la tasa de interés anual, por ejemplo 45 para 45%." };
+  }
+
+  db.insert(schema.debts)
+    .values({
+      workspaceId,
+      name: parsed.data.name,
+      kind: parsed.data.kind,
+      balanceCents: balance,
+      annualRateBp: Math.round(rate * 100),
+      minPaymentCents: minPayment,
+    })
+    .run();
+  refresh(workspaceId);
+  return { message: "Deuda agregada." };
+}
+
+export async function payDebtAction(
+  workspaceId: number,
+  debtId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { user, workspace } = await requireWorkspace(workspaceId);
+  const debt = debtInWorkspace(workspaceId, debtId);
+  if (!debt) return { error: "Deuda no encontrada." };
+  const amount = positiveAmount(formData.get("amount"));
+  if (!amount) return { error: "Escribe cuánto abonaste." };
+
+  db.transaction((tx) => {
+    if (formData.get("record")) {
+      const category = workspace.kind === "family" ? ensureExpenseCategory(workspaceId, DEBT_CATEGORY, "save") : null;
+      tx.insert(schema.transactions)
+        .values({
+          workspaceId,
+          date: today(),
+          description: `Abono a ${debt.name}`,
+          amountCents: amount,
+          type: "expense",
+          categoryId: category?.id ?? null,
+          source: "manual",
+          createdBy: user.id,
+        })
+        .run();
+    }
+    tx.update(schema.debts)
+      .set({ balanceCents: Math.max(0, debt.balanceCents - amount) })
+      .where(eq(schema.debts.id, debt.id))
+      .run();
+  });
+  refresh(workspaceId);
+  return { message: amount >= debt.balanceCents ? "¡Deuda liquidada! 🎉" : "Abono anotado." };
+}
+
+export async function updateDebtAction(
+  workspaceId: number,
+  debtId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireWorkspace(workspaceId);
+  const debt = debtInWorkspace(workspaceId, debtId);
+  if (!debt) return { error: "Deuda no encontrada." };
+  const raw = String(formData.get("balance") ?? "").trim();
+  const balance = raw === "0" ? 0 : positiveAmount(raw);
+  if (balance === null) return { error: "Escribe el saldo de tu último estado de cuenta." };
+  db.update(schema.debts).set({ balanceCents: balance }).where(eq(schema.debts.id, debt.id)).run();
+  refresh(workspaceId);
+  return { message: "Saldo actualizado." };
+}
+
+export async function deleteDebtAction(workspaceId: number, debtId: number) {
+  await requireWorkspace(workspaceId);
+  db.delete(schema.debts)
+    .where(and(eq(schema.debts.id, debtId), eq(schema.debts.workspaceId, workspaceId)))
+    .run();
+  refresh(workspaceId);
+}
+
+/* ───────────── Clasificación 50/30/20 ───────────── */
+
+export async function setCategoryBucketAction(workspaceId: number, categoryId: number, bucket: string) {
+  await requireWorkspace(workspaceId);
+  const value = bucket === "need" || bucket === "want" || bucket === "save" ? bucket : null;
+  db.update(schema.categories)
+    .set({ bucket: value })
+    .where(
+      and(
+        eq(schema.categories.id, categoryId),
+        eq(schema.categories.workspaceId, workspaceId),
+        eq(schema.categories.type, "expense"),
+      ),
+    )
+    .run();
+  refresh(workspaceId);
 }
 
 /* ───────────── Importar CSV ───────────── */

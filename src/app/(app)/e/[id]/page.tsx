@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ArrowDown, ArrowUp, PiggyBank, Tags, Target, TrendingDown, TrendingUp, Users, Wallet } from "lucide-react";
+import { BucketCard } from "@/components/bucket-card";
 import { BudgetBar } from "@/components/budget-bar";
+import { HormigaCard } from "@/components/hormiga-card";
+import { TipsCard } from "@/components/tips-card";
 import { CategoryIcon } from "@/components/category-icon";
 import { IncomeExpenseChart, MrrChart } from "@/components/charts";
 import { Explain } from "@/components/explain";
@@ -13,6 +16,7 @@ import { requireWorkspace } from "@/lib/auth";
 import { isMonth, longMonth, shiftMonth, shortMonth, today } from "@/lib/dates";
 import { budgetStatus, monthProgress } from "@/lib/budgets";
 import { changeVs, monthVerdict } from "@/lib/insights";
+import { workspaceOverview } from "@/lib/overview";
 import { categoryBreakdown, lastMonths, mrrHistory, monthlySummary, saasMetrics } from "@/lib/metrics";
 import { formatMoney } from "@/lib/money";
 import {
@@ -78,15 +82,21 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
     totalBudget > 0 ? budgetStatus(spentBudgeted, totalBudget, progress, workspace.currency) : null;
 
   const setup = getSetupStatus(workspace.id);
-  const steps: Step[] = [
-    { done: setup.manual, title: "Anota un movimiento", detail: "Un gasto o ingreso, a mano.", href: `${base}/movimientos` },
-    { done: setup.csv, title: "Sube el CSV de tu banco", detail: "Trae todos tus movimientos de golpe.", href: `${base}/importar` },
-    { done: setup.budgets, title: "Ponte un presupuesto", detail: "Un tope al mes por categoría.", href: `${base}/presupuesto` },
-    { done: setup.rules, title: "Crea una regla", detail: "Ej. “oxxo” → Supermercado, y se clasifica solo.", href: `${base}/categorias` },
-    isBusiness
-      ? { done: setup.stripe, title: "Conecta Stripe", detail: "Para ver MRR, churn y LTV.", href: `${base}/stripe` }
-      : { done: setup.members, title: "Invita a tu familia", detail: "Que cada quien anote sus gastos.", href: `${base}/ajustes` },
-  ];
+  const steps: Step[] = isBusiness
+    ? [
+        { done: setup.manual, title: "Anota un movimiento", detail: "Un gasto o ingreso, a mano.", href: `${base}/movimientos` },
+        { done: setup.csv, title: "Sube el CSV del banco", detail: "Trae todos tus movimientos de golpe.", href: `${base}/importar` },
+        { done: setup.budgets, title: "Ponte un presupuesto", detail: "Un tope al mes por categoría.", href: `${base}/presupuesto` },
+        { done: setup.stripe, title: "Conecta Stripe", detail: "Para ver MRR, churn y LTV.", href: `${base}/stripe` },
+      ]
+    : [
+        { done: setup.manual || setup.csv, title: "Anota tus gastos", detail: "A mano o subiendo el CSV del banco.", href: `${base}/movimientos` },
+        { done: setup.budgets, title: "Ponte un presupuesto", detail: "Un tope al mes por categoría.", href: `${base}/presupuesto` },
+        { done: setup.bills, title: "Anota tus pagos fijos", detail: "Luz, internet, colegiaturas… con aviso antes de que venzan.", href: `${base}/pagos` },
+        { done: setup.goals, title: "Empieza tu fondo de emergencia", detail: "Para imprevistos, sin endeudarse.", href: `${base}/metas` },
+        { done: setup.members, title: "Invita a tu familia", detail: "Que cada quien anote sus gastos.", href: `${base}/ajustes` },
+      ];
+  const overview = workspaceOverview(workspace, month, now);
 
   const stripe = isBusiness ? getStripeConnection(workspace.id) : undefined;
   const subs = stripe
@@ -141,6 +151,8 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
         />
       </Card>
 
+      <TipsCard tips={overview.tips} base={base} />
+
       <SetupChecklist steps={steps} />
 
       {budgetTotal && (
@@ -159,6 +171,13 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
             <BudgetBar status={budgetTotal} progress={progress} />
           </Card>
         </Link>
+      )}
+
+      {overview.split && overview.hormiga && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <BucketCard split={overview.split} currency={workspace.currency} base={base} />
+          <HormigaCard hormiga={overview.hormiga} currency={workspace.currency} limit={overview.hormigaLimit} />
+        </div>
       )}
 
       {uncategorized > 0 && (

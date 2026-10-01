@@ -282,6 +282,35 @@ export async function deleteRuleAction(workspaceId: number, ruleId: number) {
   refresh(workspaceId);
 }
 
+/* ───────────── Presupuestos ───────────── */
+
+export async function setBudgetAction(
+  workspaceId: number,
+  categoryId: number,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireWorkspace(workspaceId);
+  const category = categoryInWorkspace(workspaceId, categoryId);
+  if (!category || category.type !== "expense") return { error: "Categoría inválida." };
+
+  const raw = String(formData.get("amount") ?? "").trim();
+  const cents = raw === "" ? 0 : parseAmount(raw);
+  if (cents === null || cents < 0) return { error: "Escribe un monto válido." };
+
+  if (cents === 0) {
+    db.delete(schema.budgets).where(eq(schema.budgets.categoryId, category.id)).run();
+    refresh(workspaceId);
+    return { message: "Sin presupuesto." };
+  }
+  db.insert(schema.budgets)
+    .values({ workspaceId, categoryId: category.id, amountCents: cents })
+    .onConflictDoUpdate({ target: schema.budgets.categoryId, set: { amountCents: cents } })
+    .run();
+  refresh(workspaceId);
+  return { message: "Guardado." };
+}
+
 /* ───────────── Importar CSV ───────────── */
 
 export type ImportResult =

@@ -110,6 +110,22 @@ export const categoryRules = sqliteTable("category_rules", {
     .references(() => categories.id, { onDelete: "cascade" }),
 });
 
+/** Tope mensual de gasto por categoría; se repite cada mes. */
+export const budgets = sqliteTable(
+  "budgets",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    workspaceId: integer("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    amountCents: integer("amount_cents").notNull(),
+  },
+  (t) => [uniqueIndex("budgets_category").on(t.categoryId)],
+);
+
 export const stripeConnections = sqliteTable("stripe_connections", {
   workspaceId: integer("workspace_id")
     .primaryKey()

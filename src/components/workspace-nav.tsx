@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Settings,
   Tags,
+  Target,
   Upload,
   type LucideIcon,
 } from "lucide-react";
@@ -15,6 +16,7 @@ import {
 const ICONS: Record<string, LucideIcon> = {
   "": LayoutDashboard,
   "/movimientos": ArrowLeftRight,
+  "/presupuesto": Target,
   "/importar": Upload,
   "/categorias": Tags,
   "/stripe": CreditCard,

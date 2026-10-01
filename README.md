@@ -14,6 +14,7 @@ Nyre te dice en una frase cómo va tu mes (“¡Vas muy bien! De cada $100 que e
 | ✍️ **Anotar gastos e ingresos** | A mano, en segundos. |
 | 🏦 **Subir el CSV del banco** | Detecta las columnas solo y no duplica nada si lo subes dos veces. |
 | 🏷️ **Clasificar en automático** | Reglas como “si dice *walmart* → Supermercado”. |
+| 🎯 **Presupuesto por categoría** | Un tope al mes con una barra que se llena y te avisa si vas gastando muy rápido. |
 | 💳 **Conectar Stripe** | Ingreso mensual (MRR), cancelaciones (churn) y valor por cliente (LTV). |
 | 👨‍👩‍👧 **Compartir con tu familia** | Invitas con un enlace; cada quien tiene su cuenta. |
 
@@ -26,6 +27,7 @@ flowchart LR
     C[💳 Stripe] --> M
     C --> S[(Suscripciones)]
     M --> D[📊 Resumen del mes<br/>entró · salió · te quedó]
+    P[🎯 Presupuestos] --> D
     S --> K[🚀 Métricas SaaS<br/>MRR · churn · LTV]
 ```
 
@@ -39,9 +41,13 @@ flowchart LR
 |---|---|
 | ![Métricas del SaaS](docs/capturas/resumen-saas.png) | ![Movimientos](docs/capturas/movimientos.png) |
 
-| Importar CSV | En el celular |
+| Presupuesto | Importar CSV |
 |---|---|
-| ![Importar CSV](docs/capturas/importar.png) | ![Vista en celular](docs/capturas/celular.png) |
+| ![Presupuesto](docs/capturas/presupuesto.png) | ![Importar CSV](docs/capturas/importar.png) |
+
+| En el celular |
+|---|
+| ![Vista en celular](docs/capturas/celular.png) |
 
 ## Glosario sin rodeos
 
@@ -49,6 +55,7 @@ flowchart LR
 |---|---|
 | **Te quedó / Ganancia** | Lo que entró menos lo que salió en el mes. |
 | **Tasa de ahorro** | De cada $100 que entran, cuánto te queda. Una meta común es $20 o más. |
+| **Presupuesto** | Lo máximo que quieres gastar al mes en una categoría. La rayita en la barra marca el día de hoy: si la barra la pasa, vas gastando más rápido que el mes. |
 | **MRR** | Lo que te pagan cada mes todas tus suscripciones activas. |
 | **ARR** | El MRR por 12: lo que ganarías en un año a este ritmo. |
 | **ARPU** | Lo que paga en promedio cada cliente al mes. |

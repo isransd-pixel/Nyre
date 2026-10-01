@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowDown, ArrowUp, PiggyBank, Tags, TrendingDown, TrendingUp, Users, Wallet } from "lucide-react";
+import { ArrowDown, ArrowUp, PiggyBank, Tags, Target, TrendingDown, TrendingUp, Users, Wallet } from "lucide-react";
+import { BudgetBar } from "@/components/budget-bar";
 import { CategoryIcon } from "@/components/category-icon";
 import { IncomeExpenseChart, MrrChart } from "@/components/charts";
 import { Explain } from "@/components/explain";
@@ -10,10 +11,12 @@ import { Card, Stat } from "@/components/ui";
 import { VerdictBanner } from "@/components/verdict";
 import { requireWorkspace } from "@/lib/auth";
 import { isMonth, longMonth, shiftMonth, shortMonth, today } from "@/lib/dates";
+import { budgetStatus, monthProgress } from "@/lib/budgets";
 import { changeVs, monthVerdict } from "@/lib/insights";
 import { categoryBreakdown, lastMonths, mrrHistory, monthlySummary, saasMetrics } from "@/lib/metrics";
 import { formatMoney } from "@/lib/money";
 import {
+  getBudgets,
   getCategories,
   getSetupStatus,
   getStripeConnection,
@@ -53,7 +56,13 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
   const prev = summary[summary.length - 2];
   const verdict = monthVerdict(cur.income, cur.expense, workspace.currency, workspace.kind);
 
-  const names = new Map(getCategories(workspace.id).map((c) => [c.id, c.name]));
+  const categories = getCategories(workspace.id);
+  const names = new Map(categories.map((c) => [c.id, c.name]));
+  const budgets = getBudgets(workspace.id);
+  const budgetByName = new Map(
+    categories.filter((c) => c.type === "expense" && budgets.has(c.id)).map((c) => [c.name, budgets.get(c.id)!]),
+  );
+  const progress = monthProgress(month, now);
   const monthTxs = txs.filter((t) => t.date.startsWith(month));
   const byCategory = categoryBreakdown(monthTxs, "expense", names);
   const prevByCategory = new Map(
@@ -61,11 +70,18 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
   );
   const maxCat = byCategory[0]?.total ?? 0;
   const uncategorized = monthTxs.filter((t) => t.categoryId === null).length;
+  const totalBudget = [...budgets.values()].reduce((a, b) => a + b, 0);
+  const spentBudgeted = monthTxs
+    .filter((t) => t.type === "expense" && t.categoryId !== null && budgets.has(t.categoryId))
+    .reduce((a, t) => a + t.amountCents, 0);
+  const budgetTotal =
+    totalBudget > 0 ? budgetStatus(spentBudgeted, totalBudget, progress, workspace.currency) : null;
 
   const setup = getSetupStatus(workspace.id);
   const steps: Step[] = [
     { done: setup.manual, title: "Anota un movimiento", detail: "Un gasto o ingreso, a mano.", href: `${base}/movimientos` },
     { done: setup.csv, title: "Sube el CSV de tu banco", detail: "Trae todos tus movimientos de golpe.", href: `${base}/importar` },
+    { done: setup.budgets, title: "Ponte un presupuesto", detail: "Un tope al mes por categoría.", href: `${base}/presupuesto` },
     { done: setup.rules, title: "Crea una regla", detail: "Ej. “oxxo” → Supermercado, y se clasifica solo.", href: `${base}/categorias` },
     isBusiness
       ? { done: setup.stripe, title: "Conecta Stripe", detail: "Para ver MRR, churn y LTV.", href: `${base}/stripe` }
@@ -126,6 +142,24 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
       </Card>
 
       <SetupChecklist steps={steps} />
+
+      {budgetTotal && (
+        <Link href={`${base}/presupuesto`} className="group">
+          <Card className="flex flex-col gap-3 transition group-hover:border-accent">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="flex items-center gap-2 font-semibold">
+                <Target className="h-4 w-4 text-accent" aria-hidden />
+                Presupuesto
+              </h2>
+              <span className="text-sm text-muted">
+                <span className="font-medium text-text tabular-nums">{fmt(spentBudgeted)}</span> de{" "}
+                {fmt(totalBudget)}
+              </span>
+            </div>
+            <BudgetBar status={budgetTotal} progress={progress} />
+          </Card>
+        </Link>
+      )}
 
       {uncategorized > 0 && (
         <Link
@@ -253,20 +287,29 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
             <ul className="flex flex-col gap-4">
               {byCategory.map((c) => {
                 const change = changeVs(c.total, prevByCategory.get(c.name) ?? 0);
+                const budget = budgetByName.get(c.name);
+                const status = budget ? budgetStatus(c.total, budget, progress, workspace.currency) : null;
                 return (
                   <li key={c.name} className="flex items-center gap-3 text-sm">
                     <CategoryIcon name={c.name === "Sin categoría" ? null : c.name} type="expense" />
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex justify-between gap-2">
                         <span className="truncate">{c.name}</span>
-                        <span className="tabular-nums">{fmt(c.total)}</span>
+                        <span className="tabular-nums">
+                          {fmt(c.total)}
+                          {budget && <span className="text-muted"> de {fmt(budget)}</span>}
+                        </span>
                       </div>
-                      <div className="h-2 rounded-full bg-bg">
-                        <div
-                          className="h-2 rounded-full"
-                          style={{ width: `${(c.total / maxCat) * 100}%`, background: "var(--series-2)" }}
-                        />
-                      </div>
+                      {status ? (
+                        <BudgetBar status={status} progress={progress} />
+                      ) : (
+                        <div className="h-2 rounded-full bg-bg">
+                          <div
+                            className="h-2 rounded-full"
+                            style={{ width: `${(c.total / maxCat) * 100}%`, background: "var(--series-2)" }}
+                          />
+                        </div>
+                      )}
                       <div className="mt-1 flex justify-between text-xs text-muted">
                         <span>{Math.round((c.total / cur.expense) * 100)}% del gasto</span>
                         {change && change.pct !== 0 && (

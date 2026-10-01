@@ -149,11 +149,27 @@ export function getSetupStatus(workspaceId: number) {
     .from(schema.memberships)
     .where(eq(schema.memberships.workspaceId, workspaceId))
     .get()!.n;
+  const budgets = db
+    .select({ n: sql<number>`count(*)` })
+    .from(schema.budgets)
+    .where(eq(schema.budgets.workspaceId, workspaceId))
+    .get()!.n;
   return {
+    budgets: budgets > 0,
     manual: count("manual") > 0,
     csv: count("csv") > 0,
     rules: rules > 0,
     members: members > 1,
     stripe: !!getStripeConnection(workspaceId),
   };
+}
+
+/** Presupuesto mensual por categoría (categoryId → centavos). */
+export function getBudgets(workspaceId: number): Map<number, number> {
+  const rows = db
+    .select({ categoryId: schema.budgets.categoryId, amountCents: schema.budgets.amountCents })
+    .from(schema.budgets)
+    .where(eq(schema.budgets.workspaceId, workspaceId))
+    .all();
+  return new Map(rows.map((r) => [r.categoryId, r.amountCents]));
 }

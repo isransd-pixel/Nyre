@@ -13,6 +13,7 @@ export default async function WorkspaceLayout({ children, params }: LayoutProps<
   const links = [
     { href: "", label: "Resumen" },
     { href: "/movimientos", label: "Movimientos" },
+    { href: "/presupuesto", label: "Presupuesto" },
     { href: "/importar", label: "Importar CSV" },
     { href: "/categorias", label: "Categorías" },
     ...(workspace.kind === "business" ? [{ href: "/stripe", label: "Stripe" }] : []),

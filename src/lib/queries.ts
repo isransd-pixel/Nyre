@@ -130,3 +130,30 @@ export function getMembers(workspaceId: number) {
     .orderBy(asc(schema.users.name))
     .all();
 }
+
+/** Qué pasos de configuración ya completó el espacio, para la guía de inicio. */
+export function getSetupStatus(workspaceId: number) {
+  const count = (source: "manual" | "csv" | "stripe") =>
+    db
+      .select({ n: sql<number>`count(*)` })
+      .from(t)
+      .where(and(eq(t.workspaceId, workspaceId), eq(t.source, source)))
+      .get()!.n;
+  const rules = db
+    .select({ n: sql<number>`count(*)` })
+    .from(schema.categoryRules)
+    .where(eq(schema.categoryRules.workspaceId, workspaceId))
+    .get()!.n;
+  const members = db
+    .select({ n: sql<number>`count(*)` })
+    .from(schema.memberships)
+    .where(eq(schema.memberships.workspaceId, workspaceId))
+    .get()!.n;
+  return {
+    manual: count("manual") > 0,
+    csv: count("csv") > 0,
+    rules: rules > 0,
+    members: members > 1,
+    stripe: !!getStripeConnection(workspaceId),
+  };
+}

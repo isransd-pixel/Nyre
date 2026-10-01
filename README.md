@@ -1,12 +1,61 @@
 # Nyre
 
-Finanzas de la familia y del SaaS en un solo lugar.
+**Las finanzas de tu familia y de tu SaaS, en un solo lugar y fáciles de entender.**
 
-- **Espacios separados**: uno para la familia y otro para el negocio (puedes crear más), cada uno con su moneda, categorías y miembros.
-- **Movimientos**: captura manual, importación de estados de cuenta en CSV (con detección de duplicados y reglas de categorización) y sincronización con Stripe.
-- **Resumen mensual**: ingresos, gastos, balance, tasa de ahorro / margen, gráfica de 12 meses y gastos por categoría.
-- **Métricas SaaS** (con Stripe): MRR, ARR, clientes activos, ARPU, churn de 30 días, MRR nuevo y perdido, LTV y MRR histórico.
-- **Familia**: invita a otras personas con un enlace; cada quien tiene su cuenta y solo ve los espacios a los que pertenece.
+Nyre te dice en una frase cómo va tu mes (“¡Vas muy bien! De cada $100 que entraron te quedaron $49”), en qué se fue el dinero y, para tu negocio, cuánto te pagan cada mes tus clientes y cuántos se van.
+
+![Resumen de la familia](docs/capturas/resumen-familia.png)
+
+## ¿Qué puedes hacer?
+
+| | |
+|---|---|
+| 🏠 **Casa y negocio por separado** | Cada uno con su moneda, sus categorías y sus miembros. |
+| ✍️ **Anotar gastos e ingresos** | A mano, en segundos. |
+| 🏦 **Subir el CSV del banco** | Detecta las columnas solo y no duplica nada si lo subes dos veces. |
+| 🏷️ **Clasificar en automático** | Reglas como “si dice *walmart* → Supermercado”. |
+| 💳 **Conectar Stripe** | Ingreso mensual (MRR), cancelaciones (churn) y valor por cliente (LTV). |
+| 👨‍👩‍👧 **Compartir con tu familia** | Invitas con un enlace; cada quien tiene su cuenta. |
+
+## ¿Cómo funciona?
+
+```mermaid
+flowchart LR
+    A[✍️ Captura manual] --> M[(Movimientos)]
+    B[🏦 CSV del banco] --> R{Reglas de<br/>categorías} --> M
+    C[💳 Stripe] --> M
+    C --> S[(Suscripciones)]
+    M --> D[📊 Resumen del mes<br/>entró · salió · te quedó]
+    S --> K[🚀 Métricas SaaS<br/>MRR · churn · LTV]
+```
+
+1. **Entra el dinero** de tres formas: lo anotas, subes el CSV del banco o lo trae Stripe.
+2. **Se clasifica** con tus reglas (o lo eliges tú con un clic).
+3. **Lo ves explicado**: una frase de cómo vas, una barra con cuánto gastaste y cuánto te quedó, y en qué categorías se fue.
+
+## Pantallas
+
+| Tu SaaS en números | Movimientos |
+|---|---|
+| ![Métricas del SaaS](docs/capturas/resumen-saas.png) | ![Movimientos](docs/capturas/movimientos.png) |
+
+| Importar CSV | En el celular |
+|---|---|
+| ![Importar CSV](docs/capturas/importar.png) | ![Vista en celular](docs/capturas/celular.png) |
+
+## Glosario sin rodeos
+
+| Término | Qué significa |
+|---|---|
+| **Te quedó / Ganancia** | Lo que entró menos lo que salió en el mes. |
+| **Tasa de ahorro** | De cada $100 que entran, cuánto te queda. Una meta común es $20 o más. |
+| **MRR** | Lo que te pagan cada mes todas tus suscripciones activas. |
+| **ARR** | El MRR por 12: lo que ganarías en un año a este ritmo. |
+| **ARPU** | Lo que paga en promedio cada cliente al mes. |
+| **Churn** | Qué porcentaje de tus clientes canceló en los últimos 30 días. Mientras más bajo, mejor. |
+| **LTV** | Lo que te deja un cliente desde que entra hasta que se va. |
+
+Dentro de la app, cada número tiene un botón **?** con esta misma explicación.
 
 ## Empezar
 
@@ -18,7 +67,7 @@ cp .env.example .env.local   # y pon un SESSION_SECRET (openssl rand -base64 48)
 npm run dev
 ```
 
-Abre http://localhost:3200 y crea tu cuenta. Se crean automáticamente los espacios **Familia** y **Mi SaaS**.
+Abre http://localhost:3200 y crea tu cuenta. Se crean automáticamente los espacios **Familia** y **Mi SaaS**, con una guía de **primeros pasos**.
 
 Los datos se guardan en SQLite en `data/nyre.db` (cambia la ruta con `DATABASE_PATH`). Las migraciones se aplican solas al arrancar. **Respalda ese archivo**: es toda tu información.
 

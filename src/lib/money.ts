@@ -58,3 +58,12 @@ export function parseAmount(raw: string): number | null {
   const cents = Math.round(value * 100);
   return negative ? -cents : cents;
 }
+
+/** Sin centavos, para frases: "$100", "€100". */
+export function formatMoneyWhole(cents: number, currency: string): string {
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}

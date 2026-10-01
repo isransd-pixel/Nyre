@@ -1,4 +1,6 @@
+import type { LucideIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
+import { Explain } from "./explain";
 
 export function Card({ className = "", ...props }: ComponentProps<"div">) {
   return (
@@ -51,16 +53,25 @@ export function Stat({
   value,
   hint,
   tone,
+  icon: Icon,
+  explain,
 }: {
   label: string;
   value: string;
-  hint?: string;
+  hint?: ReactNode;
   tone?: "income" | "expense";
+  icon?: LucideIcon;
+  /** Explicación en lenguaje sencillo que se abre con el "?". */
+  explain?: ReactNode;
 }) {
   const color = tone === "income" ? "text-income" : tone === "expense" ? "text-expense" : "";
   return (
     <Card className="p-4">
-      <div className="text-sm text-muted">{label}</div>
+      <div className="flex items-center gap-2 text-sm text-muted">
+        {Icon && <Icon className="h-4 w-4" aria-hidden />}
+        <span>{label}</span>
+        {explain && <Explain title={label}>{explain}</Explain>}
+      </div>
       <div className={`mt-1 text-2xl font-semibold tabular-nums ${color}`}>{value}</div>
       {hint && <div className="mt-1 text-xs text-muted">{hint}</div>}
     </Card>

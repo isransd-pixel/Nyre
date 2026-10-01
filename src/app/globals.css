@@ -10,6 +10,7 @@
   --accent-text: #ffffff;
   --income: #1b7f4b;
   --expense: #c0392b;
+  --warn: #a8660a;
   /* Serie de gráficas: azul/naranja validados para daltonismo (rojo/verde no pasa). */
   --series-1: #2a78d6;
   --series-2: #eb6834;
@@ -27,6 +28,7 @@
     --accent-text: #0f1115;
     --income: #5fd394;
     --expense: #ff8a7a;
+    --warn: #f0b44c;
     --series-1: #3987e5;
     --series-2: #d95926;
     --grid: #232831;
@@ -43,6 +45,7 @@
   --color-accent-text: var(--accent-text);
   --color-income: var(--income);
   --color-expense: var(--expense);
+  --color-warn: var(--warn);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 

@@ -1,3 +1,4 @@
+import { CategoryIcon } from "@/components/category-icon";
 import { MonthPicker } from "@/components/month-picker";
 import { buttonClass, Card, Input, Select } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
@@ -22,6 +23,7 @@ export default async function TransactionsPage({ params, searchParams }: PagePro
   const q = typeof sp.q === "string" && sp.q.trim() ? sp.q.trim() : undefined;
 
   const categories = getCategories(workspace.id);
+  const names = new Map(categories.map((c) => [c.id, c.name]));
   const txs = getTransactions(workspace.id, { month, type, category, q });
   const totals = txs.reduce(
     (acc, t) => (t.type === "income" ? { ...acc, income: acc.income + t.amountCents } : { ...acc, expense: acc.expense + t.amountCents }),
@@ -80,11 +82,16 @@ export default async function TransactionsPage({ params, searchParams }: PagePro
               <tr key={t.id} className="border-b border-line last:border-0">
                 <td className="hidden whitespace-nowrap px-3 py-2 sm:px-4 text-muted sm:table-cell">{shortDate(t.date)}</td>
                 <td className="px-3 py-2 sm:px-4">
-                  <div>{t.description}</div>
-                  <div className="text-xs text-muted">
-                    <span className="sm:hidden">{shortDate(t.date)} · </span>
-                    {SOURCE[t.source]}
-                    {t.createdBy ? ` · ${t.createdBy}` : ""}
+                  <div className="flex items-center gap-3">
+                    <CategoryIcon name={t.categoryId ? names.get(t.categoryId) : null} type={t.type} size="sm" />
+                    <div>
+                      <div>{t.description}</div>
+                      <div className="text-xs text-muted">
+                        <span className="sm:hidden">{shortDate(t.date)} · </span>
+                        {SOURCE[t.source]}
+                        {t.createdBy ? ` · ${t.createdBy}` : ""}
+                      </div>
+                    </div>
                   </div>
                 </td>
                 <td className="px-3 py-2 sm:px-4">

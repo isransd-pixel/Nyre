@@ -80,9 +80,9 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthRow[]; curre
                 <TooltipBox
                   title={row.label}
                   rows={[
-                    { label: "Ingresos", value: fmt(row.income), color: "var(--series-1)" },
-                    { label: "Gastos", value: fmt(row.expense), color: "var(--series-2)" },
-                    { label: "Balance", value: fmt(row.net) },
+                    { label: "Entró", value: fmt(row.income), color: "var(--series-1)" },
+                    { label: "Salió", value: fmt(row.expense), color: "var(--series-2)" },
+                    { label: "Quedó", value: fmt(row.net) },
                   ]}
                 />
               );
@@ -96,8 +96,8 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthRow[]; curre
             iconSize={10}
             wrapperStyle={{ fontSize: 13, paddingBottom: 8, color: "var(--muted)" }}
           />
-          <Bar dataKey="income" name="Ingresos" fill="var(--series-1)" radius={[4, 4, 0, 0]} maxBarSize={28} />
-          <Bar dataKey="expense" name="Gastos" fill="var(--series-2)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <Bar dataKey="income" name="Entró" fill="var(--series-1)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <Bar dataKey="expense" name="Salió" fill="var(--series-2)" radius={[4, 4, 0, 0]} maxBarSize={28} />
         </BarChart>
       </ResponsiveContainer>
     </div>

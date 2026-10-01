@@ -4,6 +4,7 @@ import {
   deleteCategoryAction,
   deleteRuleAction,
 } from "@/app/actions";
+import { CategoryIcon } from "@/components/category-icon";
 import { ActionForm } from "@/components/action-form";
 import { SubmitButton } from "@/components/submit-button";
 import { Card, Input, Label, Select } from "@/components/ui";
@@ -23,7 +24,12 @@ export default async function CategoriesPage({ params }: PageProps<"/e/[id]/cate
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card className="flex flex-col gap-5">
-        <h2 className="font-semibold">Categorías</h2>
+        <div>
+          <h2 className="font-semibold">Categorías</h2>
+          <p className="mt-1 text-sm text-muted">
+            Son los “cajones” donde va cada peso. Así el resumen te dice en qué se fue el dinero.
+          </p>
+        </div>
         {groups.map((g) => (
           <div key={g.type}>
             <h3 className="mb-2 text-sm text-muted">{g.title}</h3>
@@ -31,7 +37,8 @@ export default async function CategoriesPage({ params }: PageProps<"/e/[id]/cate
               {categories
                 .filter((c) => c.type === g.type)
                 .map((c) => (
-                  <li key={c.id} className="flex items-center gap-1 rounded-full border border-line py-0.5 pl-3 pr-1 text-sm">
+                  <li key={c.id} className="flex items-center gap-2 rounded-full border border-line py-0.5 pl-1 pr-1 text-sm">
+                    <CategoryIcon name={c.name} type={c.type} size="sm" />
                     {c.name}
                     <form action={deleteCategoryAction.bind(null, workspace.id, c.id)}>
                       <SubmitButton

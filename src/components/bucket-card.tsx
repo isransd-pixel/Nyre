@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleCheck, Scale, TriangleAlert } from "lucide-react";
 import { bucketAdvice, REFERENCE, type BucketSplit } from "@/lib/buckets";
 import { formatMoney } from "@/lib/money";
 import { Explain } from "./explain";
-import { Card } from "./ui";
+import { Card, CardTitle } from "./ui";
 
 const ROWS = [
   { key: "need", label: "Necesidades", hint: "renta, súper, luz, transporte", color: "var(--series-1)" },
@@ -18,22 +18,21 @@ export function BucketCard({ split, currency, base }: { split: BucketSplit; curr
   const advice = bucketAdvice(split);
 
   return (
-    <Card className="flex flex-col gap-4">
-      <div>
-        <h2 className="flex items-center gap-2 font-semibold">
+    <Card className="flex flex-col gap-4 [&>div:first-child]:mb-0">
+      <CardTitle icon={Scale} hint="De cada peso que entró este mes.">
+        <span className="flex items-center gap-2">
           Necesidades, gustos y ahorro
           <Explain title="La regla 50/30/20">
             Una guía sencilla: de lo que entra, más o menos 50% para lo necesario, 30% para gustos y 20%
             para ahorrar o pagar deudas. No es una ley; sirve para ver si algo está desbalanceado.
           </Explain>
-        </h2>
-        <p className="text-sm text-muted">De cada peso que entró este mes.</p>
-      </div>
+        </span>
+      </CardTitle>
       {split.income === 0 ? (
         <p className="text-sm text-muted">Anota los ingresos del mes para ver el reparto.</p>
       ) : (
         <>
-          <div className="flex h-4 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label="Reparto del ingreso">
+          <div className="flex h-5 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label="Reparto del ingreso">
             {ROWS.map((r) => {
               const v = split[r.key];
               return v > 0 ? <div key={r.key} style={{ width: `${(v / total) * 100}%`, background: r.color }} /> : null;

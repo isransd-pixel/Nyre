@@ -13,9 +13,10 @@ export default async function ImportPage({ params }: PageProps<"/e/[id]/importar
           { Icon: Upload, title: "Sube", text: "Elige el archivo aquí abajo. Revisamos qué columna es cada cosa." },
           { Icon: CircleCheck, title: "Importa", text: "Listo. Si lo subes dos veces, los repetidos se omiten solos." },
         ].map((step, i) => (
-          <li key={step.title} className="flex gap-3 rounded-xl border border-line bg-surface p-4">
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
-              <step.Icon className="h-4 w-4" aria-hidden />
+          <li key={step.title} className="relative flex gap-3 overflow-hidden rounded-2xl border border-line/70 bg-surface p-5 shadow-card">
+            <span aria-hidden className="absolute -right-2 -top-4 text-7xl font-bold text-accent/5">{i + 1}</span>
+            <span className="bg-brand inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-glow">
+              <step.Icon className="h-5 w-5" aria-hidden />
             </span>
             <span className="text-sm">
               <span className="block font-medium">

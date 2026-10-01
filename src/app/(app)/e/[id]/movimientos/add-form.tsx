@@ -1,10 +1,10 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { Minus, PencilLine, Plus } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addTransactionAction, type ActionState } from "@/app/actions";
 import { SubmitButton } from "@/components/submit-button";
-import { Card, FormError, Input, Label, Select } from "@/components/ui";
+import { Card, CardTitle, FormError, Input, Label, Select } from "@/components/ui";
 import type { Category } from "@/db/schema";
 
 export function AddTransactionForm({
@@ -35,11 +35,12 @@ export function AddTransactionForm({
 
   return (
     <Card>
+      <CardTitle icon={PencilLine} hint="Fecha, monto y categoría. Toma 10 segundos.">Anotar un movimiento</CardTitle>
       <form ref={formRef} action={action} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
         <fieldset className="flex flex-col gap-1.5 text-sm">
-          <legend className="mb-1.5">¿Entró o salió dinero?</legend>
+          <legend className="mb-1.5 font-medium">¿Entró o salió dinero?</legend>
           <input type="hidden" name="type" value={type} />
-          <div className="grid grid-cols-2 gap-1 rounded-lg border border-line p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-surface-2 p-1">
             {(
               [
                 { value: "expense", label: "Gasto", Icon: Minus, active: "bg-expense/10 text-expense" },
@@ -51,8 +52,8 @@ export function AddTransactionForm({
                 type="button"
                 aria-pressed={type === o.value}
                 onClick={() => setType(o.value)}
-                className={`flex items-center justify-center gap-1 rounded-md px-2 py-1.5 font-medium ${
-                  type === o.value ? o.active : "text-muted hover:bg-bg"
+                className={`flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 font-semibold transition ${
+                  type === o.value ? `${o.active} bg-surface shadow-card` : "text-muted hover:text-text"
                 }`}
               >
                 <o.Icon className="h-4 w-4" aria-hidden />

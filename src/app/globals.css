@@ -1,57 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f6f7f9;
+  color-scheme: light;
+  --bg: #f4f5fa;
   --surface: #ffffff;
-  --line: #e3e6eb;
-  --text: #15181d;
-  --muted: #5f6774;
-  --accent: #3b5bdb;
+  --surface-2: #f8f9fc;
+  --line: #e6e8f0;
+  --text: #11142a;
+  --muted: #646a82;
+  --accent: #5046e5;
+  --accent-2: #8b3dff;
+  --accent-soft: #eeedfd;
   --accent-text: #ffffff;
-  --income: #1b7f4b;
-  --expense: #c0392b;
-  --warn: #a8660a;
-  /* Serie de gráficas: azul/naranja validados para daltonismo (rojo/verde no pasa). */
+  --income: #0f8a5f;
+  --expense: #d0384a;
+  --warn: #b26a00;
+  /* Serie de gráficas: azul/naranja/aqua validados para daltonismo (rojo/verde no pasa). */
   --series-1: #2a78d6;
   --series-2: #eb6834;
   --series-3: #1baf7a;
-  --grid: #eceef1;
+  --grid: #eceef4;
+  --shadow: 0 1px 2px rgb(17 20 42 / 0.04), 0 4px 16px -4px rgb(17 20 42 / 0.08);
+  --shadow-lg: 0 2px 4px rgb(17 20 42 / 0.04), 0 16px 40px -12px rgb(80 70 229 / 0.35);
+  /* Degradado de marca para la tarjeta principal. */
+  --hero: radial-gradient(120% 140% at 100% 0%, #a855f7 0%, transparent 55%),
+    radial-gradient(90% 120% at 0% 100%, #3b82f6 0%, transparent 60%),
+    linear-gradient(135deg, #4338ca 0%, #5b21b6 100%);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1115;
-    --surface: #171a20;
-    --line: #2a2f38;
-    --text: #e8eaee;
-    --muted: #9aa3b0;
-    --accent: #7b93f5;
-    --accent-text: #0f1115;
-    --income: #5fd394;
-    --expense: #ff8a7a;
-    --warn: #f0b44c;
+    color-scheme: dark;
+    --bg: #0c0d16;
+    --surface: #151726;
+    --surface-2: #1b1e30;
+    --line: #272a40;
+    --text: #eceefa;
+    --muted: #9ba1bd;
+    --accent: #8f88ff;
+    --accent-2: #b98aff;
+    --accent-soft: #23224a;
+    --accent-text: #0c0d16;
+    --income: #4fd6a0;
+    --expense: #ff8593;
+    --warn: #f3b54d;
     --series-1: #3987e5;
     --series-2: #d95926;
     --series-3: #199e70;
-    --grid: #232831;
+    --grid: #22253a;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 16px 40px -12px rgb(91 33 182 / 0.6);
+    --hero: radial-gradient(120% 140% at 100% 0%, #7e22ce 0%, transparent 55%),
+      radial-gradient(90% 120% at 0% 100%, #1d4ed8 0%, transparent 60%),
+      linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
   }
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-line: var(--line);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
   --color-income: var(--income);
   --color-expense: var(--expense);
   --color-warn: var(--warn);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --shadow-card: var(--shadow);
+  --shadow-glow: var(--shadow-lg);
 }
 
 body {
   background: var(--bg);
   color: var(--text);
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Tarjeta con el degradado de marca. */
+.bg-hero {
+  background: var(--hero);
+}
+
+/* Botón principal con degradado. */
+.bg-brand {
+  background-image: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CircleCheck, Circle, Sparkles } from "lucide-react";
+import { ArrowRight, CircleCheck, Rocket } from "lucide-react";
+import { ProgressRing } from "./progress-ring";
 import { Card } from "./ui";
 
 export type Step = { done: boolean; title: string; detail: string; href: string };
@@ -8,36 +9,43 @@ export type Step = { done: boolean; title: string; detail: string; href: string 
 export function SetupChecklist({ steps }: { steps: Step[] }) {
   const done = steps.filter((s) => s.done).length;
   if (done === steps.length) return null;
+  const next = steps.find((s) => !s.done)!;
   return (
-    <Card>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 font-semibold">
-          <Sparkles className="h-4 w-4 text-accent" aria-hidden />
-          Primeros pasos
-        </h2>
-        <span className="text-sm text-muted">
-          {done} de {steps.length} listos
-        </span>
+    <Card className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-4">
+        <ProgressRing value={done / steps.length} size={64} stroke={7} label={`${done} de ${steps.length} pasos listos`}>
+          <span className="text-sm font-semibold tabular-nums">
+            {done}/{steps.length}
+          </span>
+        </ProgressRing>
+        <div className="min-w-0 flex-1">
+          <h2 className="flex items-center gap-2 font-semibold tracking-tight">
+            <Rocket className="h-4 w-4 text-accent" aria-hidden />
+            Primeros pasos
+          </h2>
+          <p className="text-sm text-muted">
+            Siguiente: <strong className="text-text">{next.title}</strong>. {next.detail}
+          </p>
+        </div>
       </div>
-      <div className="mb-4 h-1.5 rounded-full bg-bg">
-        <div className="h-1.5 rounded-full bg-accent" style={{ width: `${(done / steps.length) * 100}%` }} />
-      </div>
-      <ol className="grid gap-2 sm:grid-cols-2">
-        {steps.map((s) => (
+      <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {steps.map((s, i) => (
           <li key={s.title}>
             <Link
               href={s.href}
-              className={`flex gap-3 rounded-lg border border-line p-3 hover:border-accent ${s.done ? "opacity-60" : ""}`}
+              className={`group flex h-full items-center gap-3 rounded-2xl p-3 ring-1 transition ${
+                s.done ? "bg-surface-2 ring-transparent" : "bg-surface ring-line hover:ring-accent/50"
+              }`}
             >
               {s.done ? (
-                <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-label="Hecho" />
+                <CircleCheck className="h-6 w-6 shrink-0 text-income" aria-label="Hecho" />
               ) : (
-                <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted" aria-label="Pendiente" />
+                <span className="bg-brand inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white">
+                  {i + 1}
+                </span>
               )}
-              <span>
-                <span className={`block text-sm font-medium ${s.done ? "line-through" : ""}`}>{s.title}</span>
-                <span className="block text-xs text-muted">{s.detail}</span>
-              </span>
+              <span className={`flex-1 text-sm font-medium ${s.done ? "text-muted line-through" : ""}`}>{s.title}</span>
+              {!s.done && <ArrowRight className="h-4 w-4 text-muted transition group-hover:translate-x-0.5 group-hover:text-accent" aria-hidden />}
             </Link>
           </li>
         ))}

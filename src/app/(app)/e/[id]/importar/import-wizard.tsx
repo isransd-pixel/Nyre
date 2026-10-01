@@ -1,5 +1,6 @@
 "use client";
 
+import { FileUp } from "lucide-react";
 import Papa from "papaparse";
 import { useMemo, useState, useTransition } from "react";
 import { importCsvAction, type ImportResult } from "@/app/actions";
@@ -88,8 +89,11 @@ export function ImportWizard({ workspaceId }: { workspaceId: number }) {
   return (
     <div className="flex flex-col gap-4">
       <Card>
-        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-line px-4 py-8 text-center hover:border-accent">
-          <span className="font-medium">{parsed ? parsed.fileName : "Elige un archivo CSV"}</span>
+        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-accent/30 bg-accent-soft/40 px-4 py-10 text-center transition hover:border-accent hover:bg-accent-soft">
+          <span className="bg-brand mb-1 inline-flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-glow">
+            <FileUp className="h-6 w-6" aria-hidden />
+          </span>
+          <span className="font-semibold">{parsed ? parsed.fileName : "Elige un archivo CSV"}</span>
           <span className="text-sm text-muted">
             {parsed ? `${parsed.rows.length} filas · haz clic para cambiarlo` : "Haz clic para buscarlo"}
           </span>

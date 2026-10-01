@@ -1,12 +1,12 @@
 "use client";
 
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Legend,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -38,7 +38,7 @@ const axis = { stroke: "var(--muted)", fontSize: 12, tickLine: false, axisLine: 
 
 function TooltipBox({ title, rows }: { title: string; rows: { label: string; value: string; color?: string }[] }) {
   return (
-    <div className="rounded-lg border border-line bg-surface px-3 py-2 text-sm shadow-lg">
+    <div className="rounded-xl border border-line/70 bg-surface px-3 py-2 text-sm shadow-card">
       <div className="mb-1 font-medium">{title}</div>
       {rows.map((r) => (
         <div key={r.label} className="flex items-center justify-between gap-6">
@@ -72,7 +72,7 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthRow[]; curre
           <XAxis dataKey="label" {...axis} />
           <YAxis {...axis} width={64} tickFormatter={compactMoney(currency)} />
           <Tooltip
-            cursor={{ fill: "var(--grid)", opacity: 0.6 }}
+            cursor={{ fill: "var(--grid)", opacity: 0.6, radius: 8 }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
               const row = payload[0].payload as MonthRow;
@@ -92,12 +92,22 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthRow[]; curre
             verticalAlign="top"
             align="right"
             itemSorter={null}
-            iconType="square"
+            iconType="circle"
             iconSize={10}
             wrapperStyle={{ fontSize: 13, paddingBottom: 8, color: "var(--muted)" }}
           />
-          <Bar dataKey="income" name="Entró" fill="var(--series-1)" radius={[4, 4, 0, 0]} maxBarSize={28} />
-          <Bar dataKey="expense" name="Salió" fill="var(--series-2)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <defs>
+            <linearGradient id="bar-income" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="var(--series-1)" />
+              <stop offset="100%" stopColor="var(--series-1)" stopOpacity={0.7} />
+            </linearGradient>
+            <linearGradient id="bar-expense" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="var(--series-2)" />
+              <stop offset="100%" stopColor="var(--series-2)" stopOpacity={0.7} />
+            </linearGradient>
+          </defs>
+          <Bar dataKey="income" name="Entró" fill="url(#bar-income)" radius={[6, 6, 2, 2]} maxBarSize={22} />
+          <Bar dataKey="expense" name="Salió" fill="url(#bar-expense)" radius={[6, 6, 2, 2]} maxBarSize={22} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -116,7 +126,13 @@ export function MrrChart({ data, currency }: { data: { label: string; mrr: numbe
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ left: 8, right: 16, top: 8 }}>
+        <AreaChart data={data} margin={{ left: 8, right: 16, top: 8 }}>
+          <defs>
+            <linearGradient id="mrr-fill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="var(--series-1)" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="var(--series-1)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
           <CartesianGrid vertical={false} stroke="var(--grid)" />
           <XAxis dataKey="label" {...axis} />
           <YAxis {...axis} width={64} tickFormatter={compactMoney(currency)} />
@@ -128,15 +144,16 @@ export function MrrChart({ data, currency }: { data: { label: string; mrr: numbe
               return <TooltipBox title={row.label} rows={[{ label: "MRR", value: fmt(row.mrr) }]} />;
             }}
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="mrr"
             stroke="var(--series-1)"
             strokeWidth={2}
+            fill="url(#mrr-fill)"
             dot={false}
             activeDot={{ r: 5, stroke: "var(--surface)", strokeWidth: 2 }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

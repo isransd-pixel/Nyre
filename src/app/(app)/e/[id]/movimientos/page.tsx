@@ -61,7 +61,7 @@ export default async function TransactionsPage({ params, searchParams }: PagePro
 
       <Card className="overflow-x-auto p-0">
         <table className="w-full  text-sm">
-          <thead className="border-b border-line text-left text-muted">
+          <thead className="border-b border-line bg-surface-2 text-left text-xs uppercase tracking-wider text-muted">
             <tr>
               <th className="hidden px-3 py-2 sm:px-4 font-normal sm:table-cell">Fecha</th>
               <th className="px-3 py-2 sm:px-4 font-normal">Descripción</th>
@@ -79,7 +79,7 @@ export default async function TransactionsPage({ params, searchParams }: PagePro
               </tr>
             )}
             {txs.map((t) => (
-              <tr key={t.id} className="border-b border-line last:border-0">
+              <tr key={t.id} className="border-b border-line transition last:border-0 hover:bg-surface-2/60">
                 <td className="hidden whitespace-nowrap px-3 py-2 sm:px-4 text-muted sm:table-cell">{shortDate(t.date)}</td>
                 <td className="px-3 py-2 sm:px-4">
                   <div className="flex items-center gap-3">
@@ -103,7 +103,7 @@ export default async function TransactionsPage({ params, searchParams }: PagePro
                   />
                 </td>
                 <td
-                  className={`whitespace-nowrap px-3 py-2 sm:px-4 text-right tabular-nums ${
+                  className={`whitespace-nowrap px-3 py-2 sm:px-4 text-right font-semibold tabular-nums ${
                     t.type === "income" ? "text-income" : "text-expense"
                   }`}
                 >

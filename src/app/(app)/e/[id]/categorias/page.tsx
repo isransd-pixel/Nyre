@@ -7,7 +7,8 @@ import {
 import { CategoryIcon } from "@/components/category-icon";
 import { ActionForm } from "@/components/action-form";
 import { SubmitButton } from "@/components/submit-button";
-import { Card, Input, Label, Select } from "@/components/ui";
+import { Tags, Wand2 } from "lucide-react";
+import { Card, CardTitle, Input, Label, Select } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
 import { BucketSelect } from "./bucket-select";
 import { getCategories, getRules } from "@/lib/queries";
@@ -26,12 +27,9 @@ export default async function CategoriesPage({ params }: PageProps<"/e/[id]/cate
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card className="flex flex-col gap-5">
-        <div>
-          <h2 className="font-semibold">Categorías</h2>
-          <p className="mt-1 text-sm text-muted">
-            Son los “cajones” donde va cada peso. Así el resumen te dice en qué se fue el dinero.
-          </p>
-        </div>
+        <CardTitle icon={Tags} hint="Son los “cajones” donde va cada peso. Así el resumen te dice en qué se fue el dinero.">
+          Categorías
+        </CardTitle>
         {groups.map((g) => {
           const list = categories.filter((c) => c.type === g.type);
           // En familia, los gastos se muestran en lista para poder clasificarlos (50/30/20).
@@ -108,13 +106,12 @@ export default async function CategoriesPage({ params }: PageProps<"/e/[id]/cate
       </Card>
 
       <Card className="flex flex-col gap-5">
-        <div>
-          <h2 className="font-semibold">Reglas automáticas</h2>
-          <p className="mt-1 text-sm text-muted">
-            Al importar, si la descripción contiene el texto, se asigna la categoría. Se usa la
-            primera regla que coincida, así que pon las más específicas primero.
-          </p>
-        </div>
+        <CardTitle
+          icon={Wand2}
+          hint="Al importar, si la descripción contiene el texto, se asigna la categoría. Se usa la primera regla que coincida, así que pon las más específicas primero."
+        >
+          Reglas automáticas
+        </CardTitle>
         {rules.length > 0 && (
           <ul className="flex flex-col divide-y divide-line text-sm">
             {rules.map((r) => (

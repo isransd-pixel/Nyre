@@ -1,7 +1,7 @@
-import { CalendarClock, HandCoins, ListChecks, MessageCircle, PiggyBank, ReceiptText } from "lucide-react";
+import { CalendarClock, HandCoins, ListChecks, MessageCircle, PiggyBank, ReceiptText, Users } from "lucide-react";
 import { MonthPicker } from "@/components/month-picker";
 import { TipsCard } from "@/components/tips-card";
-import { Card } from "@/components/ui";
+import { Card, CardTitle, IntroCard } from "@/components/ui";
 import { VerdictBanner } from "@/components/verdict";
 import { requireWorkspace } from "@/lib/auth";
 import { budgetStatus, monthProgress } from "@/lib/budgets";
@@ -17,11 +17,8 @@ import { PrintButton } from "./print-button";
 
 function Section({ icon: Icon, title, children }: { icon: typeof PiggyBank; title: string; children: React.ReactNode }) {
   return (
-    <Card className="flex flex-col gap-3 break-inside-avoid">
-      <h2 className="flex items-center gap-2 font-semibold">
-        <Icon className="h-4 w-4 text-accent" aria-hidden />
-        {title}
-      </h2>
+    <Card className="flex flex-col gap-3 break-inside-avoid [&>div:first-child]:mb-1">
+      <CardTitle icon={Icon}>{title}</CardTitle>
       {children}
     </Card>
   );
@@ -57,22 +54,13 @@ export default async function FamilyMeetingPage({ params, searchParams }: PagePr
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-col gap-3 print:border-0 print:p-0">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="max-w-2xl">
-            <h1 className="text-xl font-semibold">Junta familiar de {longMonth(month)}</h1>
-            <p className="mt-1 text-sm text-muted">
-              Platicar de dinero seguido, aunque sea de gastos pequeños, ayuda a las parejas y evita
-              pleitos. Reúnanse 20 a 30 minutos, repasen esta hoja de arriba a abajo y terminen con uno o
-              dos acuerdos.
-            </p>
-          </div>
-          <PrintButton />
-        </div>
-        <div className="print:hidden">
-          <MonthPicker month={month} current={currentMonth} basePath={`${base}/junta`} />
-        </div>
-      </Card>
+      <IntroCard icon={Users} title={`Junta familiar de ${longMonth(month)}`} aside={<PrintButton />}>
+        Platicar de dinero seguido, aunque sea de gastos pequeños, ayuda a las parejas y evita pleitos.
+        Reúnanse 20 a 30 minutos, repasen esta hoja de arriba a abajo y terminen con uno o dos acuerdos.
+      </IntroCard>
+      <div className="print:hidden">
+        <MonthPicker month={month} current={currentMonth} basePath={`${base}/junta`} />
+      </div>
 
       <Section icon={MessageCircle} title="1. ¿Cómo nos fue?">
         {verdict ? <VerdictBanner verdict={verdict} /> : <p className="text-sm text-muted">Sin movimientos este mes.</p>}

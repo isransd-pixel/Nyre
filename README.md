@@ -75,9 +75,9 @@ Cada función sale de una recomendación oficial o de un estudio, explicada sin 
 |---|---|
 | ![Deudas](docs/capturas/deudas.png) | ![Presupuesto](docs/capturas/presupuesto.png) |
 
-| Importar CSV |
-|---|
-| ![Importar CSV](docs/capturas/importar.png) |
+| Importar CSV | Inicio de sesión |
+|---|---|
+| ![Importar CSV](docs/capturas/importar.png) | ![Inicio de sesión](docs/capturas/inicio-sesion.png) |
 
 | En el celular |
 |---|

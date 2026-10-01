@@ -61,7 +61,7 @@ export function NewGoalForm({ workspaceId, templates }: { workspaceId: number; t
   return (
     <form action={action} className="flex flex-col gap-4">
       <fieldset>
-        <legend className="mb-2 text-sm">1. ¿Para qué es?</legend>
+        <legend className="mb-2 text-sm font-medium">1. ¿Para qué es?</legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {templates.map((tpl) => (
             <button
@@ -69,8 +69,10 @@ export function NewGoalForm({ workspaceId, templates }: { workspaceId: number; t
               type="button"
               aria-pressed={kind === tpl.kind}
               onClick={() => setKind(tpl.kind)}
-              className={`flex items-center gap-2 rounded-lg border p-2 text-left text-sm ${
-                kind === tpl.kind ? "border-accent bg-accent/5 font-medium" : "border-line hover:border-accent"
+              className={`flex items-center gap-3 rounded-2xl border p-3 text-left text-sm transition ${
+                kind === tpl.kind
+                  ? "border-accent bg-accent-soft font-semibold ring-4 ring-accent/10"
+                  : "border-line bg-surface hover:border-accent/50"
               }`}
             >
               <GoalIcon kind={tpl.kind} />
@@ -78,7 +80,7 @@ export function NewGoalForm({ workspaceId, templates }: { workspaceId: number; t
             </button>
           ))}
         </div>
-        <p className="mt-2 text-sm text-muted">{t.hint}</p>
+        <p className="mt-3 rounded-xl bg-surface-2 px-3 py-2 text-sm text-muted">{t.hint}</p>
       </fieldset>
       <input type="hidden" name="kind" value={kind} />
       {/* key: al cambiar de plantilla se reinician los valores sugeridos */}

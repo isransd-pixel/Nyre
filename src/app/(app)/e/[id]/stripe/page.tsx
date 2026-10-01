@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { connectStripeAction, disconnectStripeAction, syncStripeAction } from "@/app/actions";
 import { ActionForm } from "@/components/action-form";
 import { SubmitButton } from "@/components/submit-button";
-import { Card, Input, Label } from "@/components/ui";
+import { CircleCheck, CreditCard } from "lucide-react";
+import { Card, CardTitle, Input, Label } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
 import { getStripeConnection } from "@/lib/queries";
 
@@ -17,7 +18,7 @@ export default async function StripePage({ params }: PageProps<"/e/[id]/stripe">
       {conn ? (
         <Card className="flex flex-col gap-4">
           <div>
-            <h2 className="font-semibold">Stripe conectado</h2>
+            <CardTitle icon={CircleCheck}>Stripe conectado</CardTitle>
             <p className="mt-1 text-sm text-muted">
               Llave {conn.keyHint} · última sincronización{" "}
               {conn.lastSyncedAt
@@ -42,7 +43,7 @@ export default async function StripePage({ params }: PageProps<"/e/[id]/stripe">
         </Card>
       ) : role === "owner" ? (
         <Card className="flex flex-col gap-4">
-          <h2 className="font-semibold">Conectar Stripe</h2>
+          <CardTitle icon={CreditCard} hint="Tarda un minuto y es de solo lectura.">Conectar Stripe</CardTitle>
           <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
             <li>
               En Stripe ve a <strong>Desarrolladores → Llaves de API → Crear llave restringida</strong>.

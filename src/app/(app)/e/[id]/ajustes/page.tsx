@@ -1,7 +1,8 @@
 import { deleteWorkspaceAction, removeMemberAction, updateWorkspaceAction } from "@/app/actions";
 import { ActionForm } from "@/components/action-form";
 import { SubmitButton } from "@/components/submit-button";
-import { Card, Input, Label, Select } from "@/components/ui";
+import { Settings, Trash2, Users } from "lucide-react";
+import { Card, CardTitle, Input, Label, Select } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
 import { CURRENCIES } from "@/lib/money";
 import { getMembers } from "@/lib/queries";
@@ -16,7 +17,7 @@ export default async function SettingsPage({ params }: PageProps<"/e/[id]/ajuste
   return (
     <div className="flex max-w-2xl flex-col gap-6">
       <Card className="flex flex-col gap-4">
-        <h2 className="font-semibold">Miembros</h2>
+        <CardTitle icon={Users} hint="Cada quien tiene su cuenta y ve lo mismo.">Miembros</CardTitle>
         <ul className="flex flex-col divide-y divide-line text-sm">
           {members.map((m) => (
             <li key={m.id} className="flex items-center justify-between gap-2 py-2">
@@ -44,7 +45,7 @@ export default async function SettingsPage({ params }: PageProps<"/e/[id]/ajuste
       {isOwner && (
         <>
           <Card className="flex flex-col gap-4">
-            <h2 className="font-semibold">Espacio</h2>
+            <CardTitle icon={Settings}>Espacio</CardTitle>
             <ActionForm
               action={updateWorkspaceAction.bind(null, workspace.id)}
               resetOnSuccess={false}
@@ -67,7 +68,7 @@ export default async function SettingsPage({ params }: PageProps<"/e/[id]/ajuste
           </Card>
 
           <Card className="flex flex-col gap-3 border-expense/40">
-            <h2 className="font-semibold">Eliminar espacio</h2>
+            <CardTitle icon={Trash2}>Eliminar espacio</CardTitle>
             <p className="text-sm text-muted">
               Borra para siempre todos sus movimientos, categorías y la conexión con Stripe.
             </p>

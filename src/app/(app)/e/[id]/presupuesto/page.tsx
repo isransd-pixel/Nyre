@@ -1,10 +1,11 @@
-import { CalendarDays, Target } from "lucide-react";
+import { CalendarDays, Lightbulb, Target } from "lucide-react";
+import { ProgressRing } from "@/components/progress-ring";
 import { setBudgetAction } from "@/app/actions";
 import { ActionForm } from "@/components/action-form";
 import { BudgetBar } from "@/components/budget-bar";
 import { CategoryIcon } from "@/components/category-icon";
 import { SubmitButton } from "@/components/submit-button";
-import { Card, Input } from "@/components/ui";
+import { Card, IconTile, Input, IntroCard } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
 import { budgetStatus, monthProgress, suggestBudget } from "@/lib/budgets";
 import { longMonth, shiftMonth, today } from "@/lib/dates";
@@ -51,44 +52,58 @@ export default async function BudgetPage({ params }: PageProps<"/e/[id]/presupue
   const daysLeft = Math.round((1 - progress) * new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5)), 0)).getUTCDate());
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      <Card className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="flex items-center gap-2 font-semibold">
-              <Target className="h-4 w-4 text-accent" aria-hidden />
-              Presupuesto de {longMonth(month)}
-            </h2>
-            <p className="mt-1 text-sm text-muted">
-              Ponle un tope a cada categoría. La barra se llena conforme gastas, y la rayita marca
-              el día de hoy: si la barra la pasa, vas gastando más rápido que el mes.
-            </p>
-          </div>
-          <span className="flex items-center gap-1 rounded-full bg-bg px-3 py-1 text-xs text-muted">
+    <div className="flex max-w-4xl flex-col gap-6">
+      <IntroCard
+        icon={Target}
+        title={`Presupuesto de ${longMonth(month)}`}
+        aside={
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-medium text-muted">
             <CalendarDays className="h-3.5 w-3.5" aria-hidden />
             Faltan {daysLeft} días
           </span>
-        </div>
-        {total ? (
-          <>
+        }
+      >
+        Ponle un tope a cada categoría. La barra se llena conforme gastas, y la rayita marca el día de hoy: si
+        la barra la pasa, vas gastando más rápido que el mes.
+      </IntroCard>
+
+      {total ? (
+        <Card className="flex flex-wrap items-center gap-6">
+          <ProgressRing
+            value={total.pct}
+            size={120}
+            stroke={12}
+            color={total.tone === "bad" ? "var(--expense)" : total.tone === "warn" ? "var(--warn)" : "var(--accent)"}
+            label={`${Math.round(total.pct * 100)}% del presupuesto usado`}
+          >
+            <span className="text-2xl font-semibold tabular-nums">{Math.round(total.pct * 100)}%</span>
+            <span className="text-[11px] text-muted">usado</span>
+          </ProgressRing>
+          <div className="min-w-0 flex-1 basis-60">
+            <div className="text-sm text-muted">Llevan gastado</div>
             <div className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-3xl font-semibold tabular-nums">{fmt(totalSpent)}</span>
-              <span className="text-muted">de {fmt(totalBudget)} presupuestados</span>
+              <span className="text-3xl font-semibold tracking-tight tabular-nums">{fmt(totalSpent)}</span>
+              <span className="text-muted">de {fmt(totalBudget)}</span>
             </div>
-            <BudgetBar status={total} progress={progress} />
+            <div className="mt-3">
+              <BudgetBar status={total} progress={progress} />
+            </div>
             {outside > 0 && (
-              <p className="text-xs text-muted">
-                Además gastaste {fmt(outside)} en categorías sin presupuesto o sin categoría.
+              <p className="mt-2 text-xs text-muted">
+                Además gastaron {fmt(outside)} en categorías sin presupuesto o sin categoría.
               </p>
             )}
-          </>
-        ) : (
-          <p className="rounded-lg bg-bg px-3 py-2 text-sm">
-            Aún no tienes presupuesto. Empieza por las categorías donde más gastas; te sugerimos un
-            monto según tus últimos 3 meses.
+          </div>
+        </Card>
+      ) : (
+        <Card className="flex items-center gap-4">
+          <IconTile icon={Lightbulb} />
+          <p className="text-sm">
+            Aún no tienen presupuesto. Empiecen por las categorías donde más gastan; les sugerimos un monto según
+            sus últimos 3 meses.
           </p>
-        )}
-      </Card>
+        </Card>
+      )}
 
       <Card className="p-0">
         <ul className="divide-y divide-line">

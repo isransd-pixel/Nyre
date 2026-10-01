@@ -1,8 +1,8 @@
 import { createElement } from "react";
-import { CreditCard, Landmark, Mountain, Receipt, Snowflake, TriangleAlert, Trophy } from "lucide-react";
+import { Calculator, CreditCard, HandCoins, Landmark, Mountain, Plus, Receipt, Snowflake, TriangleAlert, Trophy } from "lucide-react";
 import { deleteDebtAction } from "@/app/actions";
 import { SubmitButton } from "@/components/submit-button";
-import { buttonClass, Card, Input } from "@/components/ui";
+import { buttonClass, Card, CardTitle, IconTile, Input, IntroCard } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
 import { longMonth, shiftMonth, today } from "@/lib/dates";
 import { durationLabel, minimumOnly, simulatePlan, STRATEGY_INFO, type Strategy } from "@/lib/debts";
@@ -11,6 +11,11 @@ import { getDebts } from "@/lib/queries";
 import { NewDebtForm, PayDebtForm, UpdateBalanceForm } from "./debt-forms";
 
 const KIND_ICON = { card: CreditCard, loan: Landmark, other: Receipt };
+const KIND_TINT = {
+  card: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
+  loan: "bg-slate-100 text-slate-600 dark:bg-slate-500/15 dark:text-slate-300",
+  other: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+};
 
 export default async function DebtsPage({ params, searchParams }: PageProps<"/e/[id]/deudas">) {
   const { id } = await params;
@@ -36,25 +41,28 @@ export default async function DebtsPage({ params, searchParams }: PageProps<"/e/
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <h2 className="font-semibold">Plan para salir de deudas</h2>
-          <p className="mt-1 text-sm text-muted">
-            Anota tus tarjetas y préstamos, di cuánto pueden pagar al mes en total y te decimos en qué
-            orden pagarlas y cuándo quedan libres.
-          </p>
-        </div>
-        {open.length > 0 && (
-          <div className="text-right">
-            <div className="text-sm text-muted">Deben en total</div>
-            <div className="text-2xl font-semibold tabular-nums text-expense">{fmt(totalOwed)}</div>
-            <div className="text-xs text-muted">Mínimos: {fmt(minimums)} al mes</div>
-          </div>
-        )}
-      </Card>
+      <IntroCard
+        icon={HandCoins}
+        title="Plan para salir de deudas"
+        aside={
+          open.length > 0 && (
+            <div className="text-right">
+              <div className="text-sm text-muted">Deben en total</div>
+              <div className="text-3xl font-semibold tracking-tight tabular-nums text-expense">{fmt(totalOwed)}</div>
+              <div className="text-xs text-muted">Mínimos: {fmt(minimums)} al mes</div>
+            </div>
+          )
+        }
+      >
+        Anota tus tarjetas y préstamos, di cuánto pueden pagar al mes en total y te decimos en qué orden
+        pagarlas y cuándo quedan libres.
+      </IntroCard>
 
       {open.length > 0 && (
         <Card className="flex flex-col gap-4">
+          <CardTitle icon={Calculator} hint="Prueben distintos montos: verán cómo cambia la fecha en que quedan libres.">
+            Su plan
+          </CardTitle>
           <form className="flex flex-wrap items-end gap-2" action={`/e/${workspace.id}/deudas`}>
             <label className="flex flex-col gap-1.5 text-sm">
               ¿Cuánto pueden pagar en total cada mes?
@@ -77,7 +85,9 @@ export default async function DebtsPage({ params, searchParams }: PageProps<"/e/
                 return (
                   <div
                     key={strategy}
-                    className={`flex flex-col gap-3 rounded-xl border p-4 ${strategy === "snowball" ? "border-accent" : "border-line"}`}
+                    className={`flex flex-col gap-3 rounded-2xl p-5 ${
+                      strategy === "snowball" ? "bg-accent-soft ring-2 ring-accent/40" : "bg-surface-2 ring-1 ring-line"
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       {createElement(strategy === "snowball" ? Snowflake : Mountain, {
@@ -94,16 +104,19 @@ export default async function DebtsPage({ params, searchParams }: PageProps<"/e/
                       <>
                         <div>
                           <div className="text-sm text-muted">Sin deudas en</div>
-                          <div className="text-xl font-semibold capitalize">{monthOf(result.months)}</div>
+                          <div className="text-2xl font-semibold tracking-tight capitalize">{monthOf(result.months)}</div>
                           <div className="text-xs text-muted">
                             {durationLabel(result.months)} · intereses {fmt(result.totalInterest)}
                           </div>
                         </div>
-                        <ol className="flex flex-col gap-1 text-sm">
+                        <ol className="flex flex-col gap-2 text-sm">
                           {result.payoffs.map((p, i) => (
-                            <li key={p.id} className="flex justify-between gap-2">
-                              <span>
-                                {i + 1}. {p.name}
+                            <li key={p.id} className="flex items-center justify-between gap-2">
+                              <span className="flex items-center gap-2">
+                                <span className="bg-brand inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold text-white">
+                                  {i + 1}
+                                </span>
+                                {p.name}
                               </span>
                               <span className="text-muted">{monthOf(p.month)}</span>
                             </li>
@@ -136,11 +149,9 @@ export default async function DebtsPage({ params, searchParams }: PageProps<"/e/
             return (
               <Card key={d.id} className="flex flex-col gap-3">
                 <div className="flex items-start gap-3">
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg text-muted" aria-hidden>
-                    {createElement(KIND_ICON[d.kind], { className: "h-4 w-4" })}
-                  </span>
+                  <IconTile icon={KIND_ICON[d.kind]} className={KIND_TINT[d.kind]} />
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-semibold">{d.name}</h3>
+                    <h3 className="truncate text-lg font-semibold tracking-tight">{d.name}</h3>
                     <p className="text-xs text-muted">
                       Interés {(d.annualRateBp / 100).toFixed(d.annualRateBp % 100 ? 2 : 0)}% anual · mínimo {fmt(d.minPaymentCents)}
                     </p>
@@ -152,12 +163,12 @@ export default async function DebtsPage({ params, searchParams }: PageProps<"/e/
                   </form>
                 </div>
                 {d.balanceCents === 0 ? (
-                  <p className="flex items-center gap-2 text-income">
-                    <Trophy className="h-4 w-4" aria-hidden /> ¡Liquidada!
+                  <p className="flex items-center gap-2 rounded-2xl bg-income/10 px-4 py-3 font-semibold text-income">
+                    <Trophy className="h-5 w-5" aria-hidden /> ¡Liquidada! Un peso menos encima.
                   </p>
                 ) : (
                   <>
-                    <div className="text-2xl font-semibold tabular-nums">{fmt(d.balanceCents)}</div>
+                    <div className="text-3xl font-semibold tracking-tight tabular-nums">{fmt(d.balanceCents)}</div>
                     {d.annualRateBp === 0 ? (
                       <p className="text-xs text-muted">
                         Sin intereses{minOnly ? `: con el pago mínimo terminas en ${durationLabel(minOnly.months)}.` : "."}
@@ -184,7 +195,7 @@ export default async function DebtsPage({ params, searchParams }: PageProps<"/e/
       )}
 
       <Card>
-        <h2 className="mb-4 font-semibold">{debts.length ? "Agregar otra deuda" : "Anoten sus deudas"}</h2>
+        <CardTitle icon={Plus}>{debts.length ? "Agregar otra deuda" : "Anoten sus deudas"}</CardTitle>
         <NewDebtForm workspaceId={workspace.id} />
       </Card>
 

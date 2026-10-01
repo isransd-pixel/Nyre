@@ -1,8 +1,9 @@
-import { CircleCheck, TriangleAlert, Trophy } from "lucide-react";
+import { CircleCheck, PiggyBank, Plus, TriangleAlert, Trophy } from "lucide-react";
 import { deleteGoalAction } from "@/app/actions";
-import { GoalIcon } from "@/components/goal-icon";
+import { GOAL_STYLE, GoalIcon } from "@/components/goal-icon";
+import { ProgressRing } from "@/components/progress-ring";
 import { SubmitButton } from "@/components/submit-button";
-import { Card } from "@/components/ui";
+import { Card, CardTitle, IntroCard } from "@/components/ui";
 import { requireWorkspace } from "@/lib/auth";
 import { longMonth, today } from "@/lib/dates";
 import { emergencyTarget, GOAL_TEMPLATES, goalProgress, nextMonthStart } from "@/lib/goals";
@@ -11,9 +12,9 @@ import { getGoals, monthlyBasicSpending } from "@/lib/queries";
 import { GoalEntryForm, NewGoalForm, type Template } from "./goal-forms";
 
 const TONE = {
-  done: { Icon: Trophy, text: "text-income" },
-  good: { Icon: CircleCheck, text: "text-income" },
-  warn: { Icon: TriangleAlert, text: "text-warn" },
+  done: { Icon: Trophy, text: "text-income", bg: "bg-income/10" },
+  good: { Icon: CircleCheck, text: "text-income", bg: "bg-income/10" },
+  warn: { Icon: TriangleAlert, text: "text-warn", bg: "bg-warn/10" },
 };
 
 export default async function GoalsPage({ params }: PageProps<"/e/[id]/metas">) {
@@ -39,21 +40,21 @@ export default async function GoalsPage({ params }: PageProps<"/e/[id]/metas">) 
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="flex flex-wrap items-center justify-between gap-4">
-        <div className="max-w-2xl">
-          <h2 className="font-semibold">Metas de ahorro</h2>
-          <p className="mt-1 text-sm text-muted">
-            Ponerle nombre al dinero ayuda a no gastarlo: en estudios con familias, separar el ahorro
-            “para algo” aumentó lo guardado cerca de 30%. Toda la familia ve el avance.
-          </p>
-        </div>
-        {goals.length > 0 && (
-          <div className="text-right">
-            <div className="text-sm text-muted">Apartado en total</div>
-            <div className="text-2xl font-semibold tabular-nums">{fmt(totalSaved)}</div>
-          </div>
-        )}
-      </Card>
+      <IntroCard
+        icon={PiggyBank}
+        title="Metas de ahorro"
+        aside={
+          goals.length > 0 && (
+            <div className="text-right">
+              <div className="text-sm text-muted">Apartado en total</div>
+              <div className="text-3xl font-semibold tracking-tight tabular-nums">{fmt(totalSaved)}</div>
+            </div>
+          )
+        }
+      >
+        Ponerle nombre al dinero ayuda a no gastarlo: en estudios con familias, separar el ahorro “para algo”
+        aumentó lo guardado cerca de 30%. Toda la familia ve el avance.
+      </IntroCard>
 
       {goals.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2">
@@ -68,13 +69,12 @@ export default async function GoalsPage({ params }: PageProps<"/e/[id]/metas">) 
             });
             const tone = TONE[p.tone];
             return (
-              <Card key={g.id} className="flex flex-col gap-3">
+              <Card key={g.id} className="flex flex-col gap-5">
                 <div className="flex items-start gap-3">
-                  <GoalIcon kind={g.kind} size="lg" />
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-semibold">{g.name}</h3>
+                    <h3 className="truncate text-lg font-semibold tracking-tight">{g.name}</h3>
                     <p className="text-sm text-muted">
-                      {g.targetDate ? `Para ${longMonth(g.targetDate.slice(0, 7))}` : "Sin fecha"}
+                      {g.targetDate ? `Para ${longMonth(g.targetDate.slice(0, 7))}` : "Sin fecha límite"}
                     </p>
                   </div>
                   <form action={deleteGoalAction.bind(null, workspace.id, g.id)}>
@@ -87,21 +87,28 @@ export default async function GoalsPage({ params }: PageProps<"/e/[id]/metas">) 
                     </SubmitButton>
                   </form>
                 </div>
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-2xl font-semibold tabular-nums">{fmt(g.saved)}</span>
-                  <span className="text-sm text-muted">
-                    de {fmt(g.targetCents)} · {Math.round(p.pct * 100)}%
-                  </span>
+                <div className="flex items-center gap-5">
+                  <ProgressRing
+                    value={p.pct}
+                    size={108}
+                    stroke={11}
+                    color={GOAL_STYLE[g.kind].ring}
+                    label={`${Math.round(p.pct * 100)}% de la meta`}
+                  >
+                    <GoalIcon kind={g.kind} />
+                    <span className="mt-1 text-sm font-semibold tabular-nums">{Math.round(p.pct * 100)}%</span>
+                  </ProgressRing>
+                  <div className="min-w-0">
+                    <div className="text-sm text-muted">Llevan</div>
+                    <div className="text-2xl font-semibold tracking-tight tabular-nums">{fmt(g.saved)}</div>
+                    <div className="text-sm text-muted">de {fmt(g.targetCents)}</div>
+                    {p.remaining > 0 && (
+                      <div className="mt-1 text-xs text-muted">Faltan {fmt(p.remaining)}</div>
+                    )}
+                  </div>
                 </div>
-                <div
-                  className="h-3 rounded-full bg-bg"
-                  role="img"
-                  aria-label={`${Math.round(p.pct * 100)}% de la meta`}
-                >
-                  <div className="h-3 rounded-full" style={{ width: `${p.pct * 100}%`, background: "var(--series-1)" }} />
-                </div>
-                <p className={`flex items-center gap-1.5 text-sm ${tone.text}`}>
-                  <tone.Icon className="h-4 w-4" aria-hidden />
+                <p className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${tone.bg} ${tone.text}`}>
+                  <tone.Icon className="h-4 w-4 shrink-0" aria-hidden />
                   {p.message}
                 </p>
                 {g.kind === "emergency" && basic > 0 && (
@@ -117,7 +124,7 @@ export default async function GoalsPage({ params }: PageProps<"/e/[id]/metas">) 
       )}
 
       <Card>
-        <h2 className="mb-4 font-semibold">{goals.length ? "Nueva meta" : "Creen su primera meta"}</h2>
+        <CardTitle icon={Plus}>{goals.length ? "Nueva meta" : "Creen su primera meta"}</CardTitle>
         <NewGoalForm workspaceId={workspace.id} templates={templates} />
       </Card>
 

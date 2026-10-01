@@ -1,12 +1,17 @@
-import { TopBar } from "@/components/top-bar";
+import { AppShell } from "@/components/app-shell";
 import { requireUser } from "@/lib/auth";
+import { listWorkspaces } from "@/lib/queries";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
+  const workspaces = listWorkspaces(user.id).map(({ workspace }) => ({
+    id: workspace.id,
+    name: workspace.name,
+    kind: workspace.kind,
+  }));
   return (
-    <>
-      <TopBar userName={user.name} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
-    </>
+    <AppShell user={{ name: user.name, email: user.email }} workspaces={workspaces}>
+      {children}
+    </AppShell>
   );
 }

@@ -2,7 +2,7 @@ import "server-only";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { appSecret } from "./secret";
 
-const key = () => createHash("sha256").update(`nyre:stripe-key:${appSecret()}`).digest();
+const key = () => createHash("sha256").update(`kipu:stripe-key:${appSecret()}`).digest();
 
 export function encrypt(plain: string): string {
   const iv = randomBytes(12);

@@ -11,13 +11,6 @@ type DB = BetterSQLite3Database<typeof schema>;
 function open(): DB {
   const file = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "kipu.db");
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  // La app antes se llamaba Nyre: si existe la base vieja, se renombra para no perder datos.
-  const legacy = path.join(path.dirname(file), "nyre.db");
-  if (!process.env.DATABASE_PATH && !fs.existsSync(file) && fs.existsSync(legacy)) {
-    for (const suffix of ["", "-wal", "-shm"]) {
-      if (fs.existsSync(legacy + suffix)) fs.renameSync(legacy + suffix, file + suffix);
-    }
-  }
   const sqlite = new Database(file);
   sqlite.pragma("journal_mode = WAL");
   sqlite.pragma("foreign_keys = ON");

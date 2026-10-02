@@ -44,7 +44,7 @@ export async function register(_: AuthState, formData: FormData): Promise<AuthSt
 
 // Hash de relleno para que el tiempo de respuesta no revele si el correo existe.
 let dummyHash: string | undefined;
-const getDummyHash = async () => (dummyHash ??= await bcrypt.hash("nyre-dummy", 12));
+const getDummyHash = async () => (dummyHash ??= await bcrypt.hash("kipu-dummy", 12));
 
 export async function login(_: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();

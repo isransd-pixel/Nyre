@@ -185,7 +185,7 @@ export function billsToIcs(
     const day = b.nextDue.replace(/-/g, "");
     lines.push(
       "BEGIN:VEVENT",
-      `UID:nyre-bill-${b.id}@nyre`,
+      `UID:kipu-bill-${b.id}@kipu`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${day}`,
       `RRULE:${RRULE[b.frequency]}`,

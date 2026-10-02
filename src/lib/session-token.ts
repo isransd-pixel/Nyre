@@ -3,7 +3,7 @@ import { appSecret } from "./secret";
 
 // Sin dependencias de next/headers para poder usarse también desde proxy.ts.
 
-export const SESSION_COOKIE = "nyre_session";
+export const SESSION_COOKIE = "kipu_session";
 export const SESSION_DAYS = 30;
 
 const key = () => new TextEncoder().encode(appSecret());
